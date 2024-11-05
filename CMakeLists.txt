@@ -46,6 +46,7 @@ endif()
 
 # Source files
 set(HypiC_SOURCES
+src/Particles.cpp
 )
 
 add_library(HypiC SHARED ${HypiC_SOURCES})
@@ -63,4 +64,4 @@ target_include_directories(HypiC
 # Enable testing
 include(CTest)
 enable_testing()
-add_subdirectory(tests)
+add_subdirectory(test)

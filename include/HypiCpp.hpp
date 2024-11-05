@@ -5,4 +5,4 @@
 
 //add headers for classes 
 
-#endif // _HypiC_
+#endif // _LIBHypiC_
