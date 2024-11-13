@@ -1,3 +1,5 @@
+#include <cstddef>
+#include <iostream> 
 #include "Particles.hpp"
 
 namespace HypiC{
@@ -5,7 +7,7 @@ namespace HypiC{
     // Default constructor
     template <class fp_type>
     Particles_Object<fp_type>::Particles_Object() :
-         HypiC<fp_type>::Particles_Object()
+        fp_type::Particles_Object()
     {
         std::cout << "Hello from Constructor!\n";
     }
@@ -33,7 +35,17 @@ namespace HypiC{
 
     //Update particle method
     template <class fp_type>
-    void Particles_Object<fp_type>::Update_Particle(){
+    void Particles_Object<fp_type>::Update_Particle(size_t index, double dt){
         std::cout << "Hello From Update Particle Method\n";
+        double rate_coefficient;
+        //update the velocity
+        this->_Velocities[index]+= this->ChargetoMassRatio * this->_ElectricField[index] * dt;
+
+        //update the position 
+        this->_Positions[index]+= this->_Velocities[index] * dt;
+
+        //update the weights
+        rate_coefficient = Ionization_rate(this->_ElectronTemperature[index]);
+        this->_Weights[index]= this->_Weights[index] + this->_IonizationDirection * exp(-this->_ElectronDensity * rate_coefficient * dt);
     }
 }

@@ -7,7 +7,7 @@
 // Therefore, we check that _LIBSPMV_, a macro defined in the top-level header file, is
 // defined. Otherwise, we throw an error.
 
-#ifndef _HypiC_
+#ifndef _LIBHypiC_
 #  error("unit_test_framework.hpp must be included AFTER HypiCpp.hpp!")
 #endif
 

@@ -1,4 +1,4 @@
-macro(add_test FILENAME)
+macro(HypiC_add_test FILENAME)
   # Strip the path and extension from the filename to get the test name
   set(TESTNAME ${FILENAME})
   get_filename_component(TESTNAME ${TESTNAME} NAME_WE)
@@ -12,5 +12,5 @@ macro(add_test FILENAME)
 
   add_test(${TESTNAME} ${TESTNAME})
 
-  set_target_properties(${TESTNAME} PROPERTIES CXX_STANDARD ${SPMV_CXX_STANDARD})
+  set_target_properties(${TESTNAME} PROPERTIES CXX_STANDARD ${HypiC_CXX_STANDARD})
 endmacro()

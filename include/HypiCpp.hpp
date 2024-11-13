@@ -1,6 +1,6 @@
 //define program
-#ifndef _HypiC_
-#define _HypiC_
+#ifndef _LIBHypiC_
+#define _LIBHypiC_
 
 
 //add headers for classes 

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(SpMV VERSION 0.1.0 LANGUAGES CXX)
+project(HypiC VERSION 0.0.0 LANGUAGES CXX)
 
 
 #===============================================================================
@@ -21,23 +21,23 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Set the C++ standard
-set(SPMV_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD ${SPMV_CXX_STANDARD} CACHE STRING "Default C++ standard")
+set(HypiC_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD ${HypiC_CXX_STANDARD} CACHE STRING "Default C++ standard")
 set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "Require C++ standard")
 
 # Set module path
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Check that the compiler supports the C++ standard
-set(SPMV_MIN_GCC_VERSION 8.0)
+set(HypiC_MIN_GCC_VERSION 8.0)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${SPMV_MIN_GCC_VERSION})
-    message(FATAL_ERROR "GCC version must be at least ${SPMV_MIN_GCC_VERSION}")
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${HypiC_MIN_GCC_VERSION})
+    message(FATAL_ERROR "GCC version must be at least ${HypiC_MIN_GCC_VERSION}")
   endif()
 else()
   message(WARNING 
           "You are using an unsupported compiler! "
-          "Please use GCC >= ${SPMV_MIN_GCC_VERSION}")
+          "Please use GCC >= ${HypiC_MIN_GCC_VERSION}")
 endif()
 
 
