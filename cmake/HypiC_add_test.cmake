@@ -10,7 +10,7 @@ macro(HypiC_add_test FILENAME)
 
   target_link_libraries(${TESTNAME} HypiC) 
 
-  #add_test(${TESTNAME} ${TESTNAME})
+  add_test(${TESTNAME} ${TESTNAME})
 
-  #set_target_properties(${TESTNAME} PROPERTIES CXX_STANDARD ${HypiC_CXX_STANDARD})
+  set_target_properties(${TESTNAME} PROPERTIES CXX_STANDARD ${HypiC_CXX_STANDARD})
 endmacro()
