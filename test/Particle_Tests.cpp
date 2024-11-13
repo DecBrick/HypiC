@@ -7,6 +7,7 @@
 
 TEST_CASE(dummy){
     ASSERT( 1 == 1);
+    HypiC::Particles_Object<double> Part = HypiC::Particles_Object<double>();
 }
 
 TEST_SUITE(dummy_suite){

@@ -46,7 +46,8 @@ endif()
 
 # Source files
 set(HypiC_SOURCES
-src/Particles.cpp
+"src/Particles_Object.cpp"
+"src/Rate_Table.cpp"
 )
 
 add_library(HypiC SHARED ${HypiC_SOURCES})

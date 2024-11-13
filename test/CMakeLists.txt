@@ -1,4 +1,5 @@
-include(${PROJECT_SOURCE_DIR}/cmake/add_test.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/HypiC_add_test.cmake)
 
 #add test files as fit
 HypiC_add_test(./Particle_Tests.cpp)
+HypiC_add_test(./Rate_Table_Tests.cpp)

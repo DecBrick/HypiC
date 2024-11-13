@@ -4,10 +4,10 @@
 // However, NDEBUG is defined for CMake Release and RelWithDebInfo builds.
 // In order to safely undef NDEBUG, allowing assert to work, all of the headers we
 // want to use must be included before we undef NDEBUG.
-// Therefore, we check that _LIBSPMV_, a macro defined in the top-level header file, is
+// Therefore, we check that _HypiC_, a macro defined in the top-level header file, is
 // defined. Otherwise, we throw an error.
 
-#ifndef _LIBHypiC_
+#ifndef _HypiC_
 #  error("unit_test_framework.hpp must be included AFTER HypiCpp.hpp!")
 #endif
 
