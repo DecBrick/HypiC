@@ -7,7 +7,8 @@
 
 TEST_CASE(Constructor){
     //make the instance 
-    HypiC::Rate_Table_Object<double> Test_Table = HypiC::Rate_Table_Object<double>();
+    //HypiC::Rate_Table_Object<double> Test_Table = HypiC::Rate_Table_Object<double>();
+    HypiC::Rate_Table_Object Test_Table = HypiC::Rate_Table_Object();
 
     ASSERT(Test_Table._Energies == nullptr);
     ASSERT(Test_Table._Rates == nullptr);
@@ -17,7 +18,8 @@ TEST_CASE(Constructor){
 
 TEST_CASE(Xe_Single_Ionization){
     //make the instance 
-    HypiC::Rate_Table_Object<double> Test_Table = HypiC::Rate_Table_Object<double>();
+    //HypiC::Rate_Table_Object<double> Test_Table = HypiC::Rate_Table_Object<double>();
+    HypiC::Rate_Table_Object Test_Table = HypiC::Rate_Table_Object();
 
     //call the read file
     std::string base_dir = "${CMAKE_SOURCE_DIR}";

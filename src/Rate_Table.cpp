@@ -8,26 +8,28 @@
 namespace HypiC{
 
     // Default constructor
-    template <class fp_type>
-    Rate_Table_Object<fp_type>::Rate_Table_Object() :
-        fp_type::Rate_Table_Object()
+    //template <class fp_type>
+    //Rate_Table_Object<fp_type>::Rate_Table_Object()
+    Rate_Table_Object::Rate_Table_Object()
     {
         std::cout << "Hello from Rate_Table_Constructor!\n";
     }
     
     // Destructor
-    template <class fp_type>
-    Rate_Table_Object<fp_type>::~Rate_Table_Object()
+    //template <class fp_type>
+    //Rate_Table_Object<fp_type>::~Rate_Table_Object()
+    Rate_Table_Object::~Rate_Table_Object()
     {
-        delete[] this->_Energies;
-        delete[] this->_Rates;
+        //delete[] this->_Energies;
+        //delete[] this->_Rates;
         std::cout << "Byebye from Rate_Table_Destructor~\n";
     }
 
 
     //Read Table file
-    template <class fp_type>
-    void Rate_Table_Object<fp_type>::Read_Table(std::string filename){
+    //template <class fp_type>
+    //void Rate_Table_Object<fp_type>::Read_Table(std::string filename){
+    void Rate_Table_Object::Read_Table(std::string filename){
         std::cout << "Hello From Read Table Method\n";
         size_t count;
         //open the file 
@@ -49,6 +51,7 @@ namespace HypiC{
 
 
     //Interpolation method
+    /*
     template <class fp_type>
     fp_type Rate_Table_Object<fp_type>::interpolate(fp_type TeV){
         std::cout << "Hello From interpolate Method\n";
@@ -70,4 +73,5 @@ namespace HypiC{
             }
         }
     }
+    */
 }

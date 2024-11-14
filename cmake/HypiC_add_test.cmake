@@ -8,7 +8,7 @@ macro(HypiC_add_test FILENAME)
 
   add_executable(${TESTNAME} ${FILENAME})
 
-  target_link_libraries(${TESTNAME} HypiC) 
+  target_link_libraries(${TESTNAME} PRIVATE HypiC) 
 
   add_test(${TESTNAME} ${TESTNAME})
 
