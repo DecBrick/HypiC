@@ -1,7 +1,112 @@
 #include <cmath>
+#include <fstream>
 #include "HypiCpp.hpp"
-
+#include <iostream>
 namespace HypiC{
+
+    //class functions
+    Options_Object::Options_Object()
+    {
+        
+    }
+    
+    // Destructor
+    //template <class fp_type>
+    //Particles_Object<fp_type>::~Particles_Object()
+    Options_Object::~Options_Object()
+    {
+        
+    }
+
+
+    void Options_Object::Read_Input(std::string Filename){
+        std::string line;
+        size_t pos;
+    
+
+        //open the file and read line by line
+        //open the file 
+        std::ifstream f(Filename);
+        
+
+        //grab line, allow for comments in the input file, each line should end with //
+        std::getline(f, line);
+        pos = line.find_first_of("//");
+        //line 1 is nIterations
+        this->nIterations = std::stoul(line.substr(0, pos));
+
+        //rinse and repeat, next line is Output_Interval
+        std::getline(f, line);
+        pos = line.find_first_of("//");
+        this->Output_Interval = std::stoul(line.substr(0, pos));
+        //dt
+        std::getline(f, line);
+        pos = line.find_first_of("//");
+        this->dt = std::stod(line.substr(0, pos));
+        //nCells
+        std::getline(f, line);
+        pos = line.find_first_of("//");
+        this->nCells = std::stoul(line.substr(0, pos));
+        //Domain Length
+        std::getline(f, line);
+        pos = line.find_first_of("//");
+        this->Domain_Length_m = std::stod(line.substr(0, pos));
+        //Channel Length
+        std::getline(f, line);
+        pos = line.find_first_of("//");
+        this->Channel_Length_m = std::stod(line.substr(0, pos));
+        //Discharge Voltage
+        std::getline(f, line);
+        pos = line.find_first_of("//");
+        this->Discharge_Voltage_V = std::stod(line.substr(0, pos));
+        //Mass Flow Rate
+        std::getline(f, line);
+        pos = line.find_first_of("//");
+        this->Mass_Flow_Rate_kg_s = std::stod(line.substr(0, pos));
+        //Number of neutral particles
+        std::getline(f, line);
+        pos = line.find_first_of("//");
+        this->N_Neutrals = std::stoul(line.substr(0, pos));
+        //Number of ion particles
+        std::getline(f, line);
+        pos = line.find_first_of("//");
+        this->N_Ions = std::stoul(line.substr(0, pos));
+        //Neutral Temperature
+        std::getline(f, line);
+        pos = line.find_first_of("//");
+        this->Initial_Neutral_Temperature_K = std::stod(line.substr(0, pos));
+        //Ion Temperature
+        std::getline(f, line);
+        pos = line.find_first_of("//");
+        this->Initial_Ion_Temperature_K = std::stod(line.substr(0, pos));
+        //Electron Temperature
+        std::getline(f, line);
+        pos = line.find_first_of("//");
+        this->Initial_Max_Electron_Temperature_eV = std::stod(line.substr(0, pos));
+        //Anode Temperature
+        std::getline(f, line);
+        pos = line.find_first_of("//");
+        this->Initial_Anode_Temperature_eV = std::stod(line.substr(0, pos));
+        //Cathode Temperature
+        std::getline(f, line);
+        pos = line.find_first_of("//");
+        this->Initial_Cathode_Temperature_eV = std::stod(line.substr(0, pos));
+        //Initial_Min_Ion_Denisty
+        std::getline(f, line);
+        pos = line.find_first_of("//");
+        this->Initial_Min_Ion_Density = std::stod(line.substr(0, pos));
+        //Max Ion Density
+        std::getline(f, line);
+        pos = line.find_first_of("//");
+        this->Initial_Max_Ion_Density = std::stod(line.substr(0, pos));
+    };
+
+
+    double Maxwellian_Sampler(double mu, double sigma){
+        //sample from a Maxwellian 
+        return (sigma * rand()) + mu;
+    };
+
     double Initial_Electron_Density(double z, double n_min, double n_max, double Vd, double mdot, double Lch){
         //from HallThruster.jl 
         //see https://um-pepl.github.io/HallThruster.jl/dev/initialization/
@@ -28,16 +133,24 @@ namespace HypiC{
         } 
     };
 
+    //for the initialization of particles, I think we can physically distribute the particles evenly
+    //velocities come from maxwellian
+    //weights come from density 
+    //electron density and electron temperature come from the inital distributions
+    //electric field can be set to 0 then updated (update electrons first?).
 
     HypiC::Particles_Object Initialize_Neutrals(HypiC::Options_Object Inputs)
     {
         int Particles_per_cell;
         double z;
+        double z_particle;
         double dz;
         double ne;
         double Te;
         double v;
         double w;
+        double mass;
+        double kb;
 
         //calculate grid increment (assuming uniformly spaced)
         dz = Inputs.Domain_Length_m / Inputs.nCells;
@@ -45,6 +158,8 @@ namespace HypiC{
         //create the particle class instance
         HypiC::Particles_Object Neutrals = HypiC::Particles_Object();
         Neutrals._IonizationDirection = -1.0;//neutrals are removed due to ionization
+        mass = 131.29 * 1.66053907e-27;//for Xe
+        kb = 1.380649e-23;
 
         //loop over grid cells
         for(size_t c=0; c<Inputs.nCells; ++c){
@@ -53,21 +168,26 @@ namespace HypiC{
             z = dz * c;
             //loop over the particles in the cell
             for(size_t p=0; p<Particles_per_cell; ++p){
-                ne = HypiC::Initial_Electron_Density(z, Inputs.Initial_Min_Ion_Density,
+                //uniformly sample
+                //later add to the position
+                z_particle = z + dz * rand();
+
+                ne = HypiC::Initial_Electron_Density(z_particle, Inputs.Initial_Min_Ion_Density,
                 Inputs.Initial_Max_Ion_Density, Inputs.Discharge_Voltage_V, Inputs.Mass_Flow_Rate_kg_s, 
                 Inputs.Channel_Length_m);
-                Te = HypiC::Initial_Electron_Temperature(z, Inputs.Initial_Anode_Temperature_eV,
+                Te = HypiC::Initial_Electron_Temperature(z_particle, Inputs.Initial_Anode_Temperature_eV,
                 Inputs.Initial_Cathode_Temperature_eV, Inputs.Initial_Max_Electron_Temperature_eV, 
                 Inputs.Channel_Length_m, Inputs.Domain_Length_m);
                 //calculate initial velocity
                 //sample from maxwellian
-                v=0;
+                v = HypiC::Maxwellian_Sampler(sqrt(2 * kb * Inputs.Initial_Neutral_Temperature_K / (M_PI * mass)), 
+                sqrt(kb * Inputs.Initial_Neutral_Temperature_K / mass));
                 //calculate initial weight
                 //see https://smileipic.github.io/Smilei/Understand/algorithms.html
                 w = (ne / Particles_per_cell) * dz;
 
                 //Add the particle
-                Neutrals.Add_Particle(z, v, w, 0, ne, Te);
+                Neutrals.Add_Particle(z_particle, v, w, 0, ne, Te);
             }
         }
 
@@ -79,11 +199,14 @@ namespace HypiC{
     {
         int Particles_per_cell;
         double z;
+        double z_particle;
         double dz;
         double ne;
         double Te;
         double v;
         double w;
+        double mass;
+        double kb;
 
         //calculate grid increment (assuming uniformly spaced)
         dz = Inputs.Domain_Length_m / Inputs.nCells;
@@ -91,6 +214,9 @@ namespace HypiC{
         //create the particle class instance
         HypiC::Particles_Object Ions = HypiC::Particles_Object();
         Ions._IonizationDirection = 1.0;//ions are added due to ionization
+        mass = 131.29 * 1.66053907e-27;//for Xe
+        kb = 1.380649e-23;
+        Ions._ChargetoMassRatio = 1.602176634e-19 / mass; 
 
         //loop over grid cells
         for(size_t c=0; c<Inputs.nCells; ++c){
@@ -99,15 +225,20 @@ namespace HypiC{
             z = dz * c;
             //loop over the particles in the cell
             for(size_t p=0; p<Particles_per_cell; ++p){
-                ne = HypiC::Initial_Electron_Density(z, Inputs.Initial_Min_Ion_Density,
+                //uniformly sample
+                //later add to the position
+                z_particle = z + dz * rand();
+
+                ne = HypiC::Initial_Electron_Density(z_particle, Inputs.Initial_Min_Ion_Density,
                 Inputs.Initial_Max_Ion_Density, Inputs.Discharge_Voltage_V, Inputs.Mass_Flow_Rate_kg_s, 
                 Inputs.Channel_Length_m);
-                Te = HypiC::Initial_Electron_Temperature(z, Inputs.Initial_Anode_Temperature_eV,
+                Te = HypiC::Initial_Electron_Temperature(z_particle, Inputs.Initial_Anode_Temperature_eV,
                 Inputs.Initial_Cathode_Temperature_eV, Inputs.Initial_Max_Electron_Temperature_eV, 
                 Inputs.Channel_Length_m, Inputs.Domain_Length_m);
                 //calculate initial velocity
                 //sample from a maxwellian
-                v=0;
+                v = HypiC::Maxwellian_Sampler(HypiC::Initial_Ion_Bulk_Velocity(Inputs.Initial_Anode_Temperature_eV, Inputs.Discharge_Voltage_V,
+                z_particle, Inputs.Channel_Length_m, Inputs.Domain_Length_m), sqrt(kb * Inputs.Initial_Ion_Temperature_K / mass));
                 //calculate initial weight
                 //see https://smileipic.github.io/Smilei/Understand/algorithms.html
                 w = (ne / Particles_per_cell) * dz;
@@ -121,4 +252,7 @@ namespace HypiC{
         return Ions;
     };
 
+    //HypiC::Time_Sum_Object Zero_Time_Sum(){
+    //    return;
+    //};
 }

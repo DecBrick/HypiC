@@ -6,13 +6,14 @@
 void main(){
 
     //read input file, should be caled Input in the same folder as the executable 
-    HypiC::Options_Object Input_Options = HypiC::Read_Input("Input.txt");
+    HypiC::Options_Object Input_Options = HypiC::Options_Object();
+    Input_Options.Read_Input("Input.txt");
 
     //initialize
     HypiC::Particles_Object Neutrals = HypiC::Initialize_Neutrals(Input_Options);
     HypiC::Particles_Object Ions = HypiC::Initialize_Ions(Input_Options);
     //Electrons = HypiC::Initialize_Electrons(Input_Options);
-    HypiC::Time_Sum_Object Results = HypiC::Zero_Time_Sum();
+    //HypiC::Time_Sum_Object Results = HypiC::Zero_Time_Sum();
 
 
     //main loop
@@ -33,12 +34,12 @@ void main(){
         //Results = HypiC::Time_Sum(Neutrals, Ions, Electrons); 
 
         //periodic output
-        if (i % Input_Options.Output_Interval == 0){
-            HypiC::Output(Results);
-        }
+        //if (i % Input_Options.Output_Interval == 0){
+        //    HypiC::Output(Results);
+       // }
         
     }
 
     //final output
-    HypiC::Output(Results);
+    //HypiC::Output(Results);
 }

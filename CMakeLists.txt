@@ -48,6 +48,7 @@ endif()
 set(HypiC_SOURCES
 "src/Particles_Object.cpp"
 "src/Rate_Table.cpp"
+"src/Initialize.cpp"
 )
 
 add_library(HypiC SHARED ${HypiC_SOURCES})
