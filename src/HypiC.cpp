@@ -5,7 +5,7 @@
 
 void main(){
 
-    //read input file
+    //read input file, should be caled Input in the same folder as the executable 
     HypiC::Options_Object Input_Options = HypiC::Read_Input("Input.txt");
 
     //initialize
