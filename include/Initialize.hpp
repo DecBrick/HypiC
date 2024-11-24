@@ -18,6 +18,7 @@ namespace HypiC{
             //geometric input options
             double Domain_Length_m;
             double Channel_Length_m;
+            double Channel_Area_m2;
             //operating conditions
             double Discharge_Voltage_V;
             double Mass_Flow_Rate_kg_s;
