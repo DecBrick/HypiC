@@ -33,6 +33,8 @@ namespace HypiC{
             double init_weight, double init_field, double init_density, double init_temperature);
             void Remove_Particle(size_t index);
             void Update_Particle(size_t index, double dt, HypiC::Rate_Table_Object);
+            void set_Position(size_t index, double value);
+            void set_Velocity(size_t index, double value);
             //accessor methods
             double get_Position(size_t index);
             double get_Velocity(size_t index);
@@ -40,5 +42,6 @@ namespace HypiC{
             double get_ElectricField(size_t index);
             double get_ElectronDensity(size_t index);
             double get_ElectronTemperature(size_t index);
+
     };
 }

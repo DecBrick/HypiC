@@ -72,6 +72,12 @@ namespace HypiC
         this->_Weights[index]= this->_Weights[index] * exp(this->_IonizationDirection * this->_ElectronDensity[index] * rate_coefficient * dt);
     }
     
+    void Particles_Object::set_Position(size_t index, double value){
+        this->_Positions[index] = value;
+    }
+    void Particles_Object::set_Velocity(size_t index, double value){
+        this->_Velocities[index] = value;
+    }
 
     //accessor methods
     double Particles_Object::get_Position(size_t index){

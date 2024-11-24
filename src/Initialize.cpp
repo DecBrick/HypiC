@@ -183,13 +183,13 @@ namespace HypiC{
         Neutrals._IonizationDirection = -1.0;//neutrals are removed due to ionization
         mass = 131.29 * 1.66053907e-27;//for Xe
         kb = 1.380649e-23;
+        srand(time(NULL));
 
         //loop over grid cells
         for(size_t c=0; c<Inputs.nCells; ++c){
             //calculate number of particles per cell and the position
             Particles_per_cell = Inputs.N_Neutrals / Inputs.nCells;
             z = dz * c;
-            srand(time(NULL));
             //loop over the particles in the cell
             for(size_t p=0; p<Particles_per_cell; ++p){
                 //uniformly sample across cell. 
@@ -242,13 +242,14 @@ namespace HypiC{
         mass = 131.29 * 1.66053907e-27;//for Xe
         kb = 1.380649e-23;
         Ions._ChargetoMassRatio = 1.602176634e-19 / mass; 
+        srand(time(NULL));
 
         //loop over grid cells
         for(size_t c=0; c<Inputs.nCells; ++c){
             //calculate number of particles per cell and the position
             Particles_per_cell = Inputs.N_Ions / Inputs.nCells;
             z = dz * c;
-            srand(time(NULL));
+            
             //loop over the particles in the cell
             for(size_t p=0; p<Particles_per_cell; ++p){
                 //uniformly sample

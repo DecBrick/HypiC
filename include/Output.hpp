@@ -1,6 +1,7 @@
 #pragma once
 
 namespace HypiC{
+    /*
     class Time_Sum_Object{
         private:
 
@@ -10,5 +11,5 @@ namespace HypiC{
 
     void Output(Time_Sum_Object TSum){
 
-    };
+    };*/
 }

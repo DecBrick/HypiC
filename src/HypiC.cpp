@@ -14,12 +14,16 @@ void main(){
     HypiC::Particles_Object Ions = HypiC::Initialize_Ions(Input_Options);
     //Electrons = HypiC::Initialize_Electrons(Input_Options);
     //HypiC::Time_Sum_Object Results = HypiC::Zero_Time_Sum();
-
+    HypiC::Rate_Table_Object Ionization_Rates = HypiC::Rate_Table_Object();
+    //read the ionization rates. 
+    //this assumes that the build directory is in the same folder as the HypiC directory, should enforce this.
+    std::string file_path = "../../HypiC/Reactions/Xe_Ionization_0_to_1.txt";
+    Ionization_Rates.Read_Table(file_path);
 
     //main loop
     for(size_t i=0; i < Input_Options.nIterations; ++i){
         //update heavy species
-        HypiC::Update_Heavy_Species(Neutrals, Ions);
+        HypiC::Update_Heavy_Species(Neutrals, Ions, Ionization_Rates, Input_Options.dt);
 
         //interpolate
         //HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);

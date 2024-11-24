@@ -87,6 +87,13 @@ TEST_CASE(Update_Particles){
     ASSERT_NEAR(Ion_Test.get_Velocity(0), 1000 + 1.6e-24 / (131.29 * 1.67e-27), Tolerance);
     ASSERT_NEAR(Ion_Test.get_Position(0), 1 + 1e-9 *(1000 + 1.6e-24 / (131.29 * 1.67e-27)), Tolerance);
     ASSERT_NEAR(Ion_Test.get_Weight(0),  exp(1 * 1e18 * 1e-9 * 1.655e-14), Tolerance);
+
+    //check set methods
+    Ion_Test.set_Position(0, 2.0);
+    Ion_Test.set_Velocity(0, 500.0);
+
+    ASSERT_NEAR(Ion_Test.get_Position(0), 2.0, Tolerance);
+    ASSERT_NEAR(Ion_Test.get_Velocity(0), 500.0, Tolerance);
 }
 
 TEST_SUITE(Particles_Suite){
