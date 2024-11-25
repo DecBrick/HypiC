@@ -110,5 +110,24 @@ namespace HypiC{
             Remove_These.pop_back();//remove from the reflect list
         }
     };
+    void Update_Electrons(HypiC::Electrons_Object Electrons, HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Rate_Table_Object Ionization_Rates, HypiC::Options_Object Simulation_Parameters){
+        for(size_t c=0; c<Simulation_Parameters.nCells; ++c){
+            Electrons.Electron_Temperature_eV[c] = 2/3 * Electrons.EnergyDensity[c]/Electrons.Plasma_Density_m3[c];
+            Electrons.Electron_Pressure[c] =  1.5 * Electrons.EnergyDensity[c] * Electrons.Electron_Temperature_eV[c];
 
+            //Update Electron-Ion Collisions
+
+            //Update OTHER
+
+            //Anomalous transport?
+
+            //Smooth?
+
+            //Sheath = 0
+
+            //Discharge Voltage
+
+            //Electron Velocity + Electron Kinetic
+
+            //Compute E_Kinetic, Pressure graidient, EFIeld, Potential, Thermal Conductivity, Energy
 }

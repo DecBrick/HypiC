@@ -14,6 +14,7 @@ namespace HypiC{
         public:
             Electrons_Object();
             ~Electrons_Object();
+            std::vector<double> Electron_Pressure;
             std::vector<double> EnergyDensity;
             std::vector<double> Neutral_Density_m3;
             std::vector<double> Neutral_Velocity_m_s;
