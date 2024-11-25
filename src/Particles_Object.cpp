@@ -57,8 +57,6 @@ namespace HypiC
     }
 
     //Update particle method
-    //template <class fp_type>
-    //void Particles_Object<fp_type>::Update_Particle(size_t index, double dt){
     void Particles_Object::Update_Particle(size_t index, double dt, HypiC::Rate_Table_Object Single_Ionization_Table){
         double rate_coefficient;
         //update the velocity
@@ -69,7 +67,14 @@ namespace HypiC
 
         //update the weights
         rate_coefficient = Single_Ionization_Table.interpolate(this->_ElectronTemperature[index]);
-        this->_Weights[index]= this->_Weights[index] * exp(this->_IonizationDirection * this->_ElectronDensity[index] * rate_coefficient * dt);
+        this->_Weights[index] *= exp(this->_IonizationDirection * this->_ElectronDensity[index] * rate_coefficient * dt);
+    }
+
+    void Particles_Object::Velocity_Backstep(double dt){
+        //based on the current electric field, set v back by dt/2 to initialize leapfrog
+        for (size_t i=0; i<this->_nParticles; ++i){
+            this->_Velocities[i] -= (dt/2) * this->_ChargetoMassRatio * this->_ElectricField[i];
+        }
     }
     
     void Particles_Object::set_Position(size_t index, double value){

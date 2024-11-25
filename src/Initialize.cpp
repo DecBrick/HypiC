@@ -285,7 +285,4 @@ namespace HypiC{
         return Ions;
     };
 
-    //HypiC::Time_Sum_Object Zero_Time_Sum(){
-    //    return;
-    //};
 }

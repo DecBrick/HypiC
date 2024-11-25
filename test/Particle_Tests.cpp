@@ -94,6 +94,11 @@ TEST_CASE(Update_Particles){
 
     ASSERT_NEAR(Ion_Test.get_Position(0), 2.0, Tolerance);
     ASSERT_NEAR(Ion_Test.get_Velocity(0), 500.0, Tolerance);
+
+    //check initialization
+    Ion_Test.Velocity_Backstep(1e-9);
+
+    ASSERT_NEAR(Ion_Test.get_Velocity(0), 500 - (1.6e-19 / (131.29 * 1.67e-27)* 10000 * 5e-10),Tolerance);
 }
 
 TEST_SUITE(Particles_Suite){

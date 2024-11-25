@@ -14,6 +14,19 @@ void main(){
     HypiC::Particles_Object Ions = HypiC::Initialize_Ions(Input_Options);
     //Electrons = HypiC::Initialize_Electrons(Input_Options);
 
+    //initial interpolations 
+    //interpolate particle densities to electrons
+    //HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
+
+    //solve electric field for electrons
+    //Electrons.Solve_Field(); //or whatever the function is
+
+    //interpolate field back to particles
+    //HypiC::Grid_to_Particles(Neutrals, Ions, Electrons);
+    
+    //take back half step for ions (neutrals are unaffected by the field) 
+    Ions.Velocity_Backstep(Input_Options.dt);
+
     //initialize outputs 
     HypiC::Time_Sum_Object Results = HypiC::Time_Sum_Object();
     Results.Initialize_Time_Sum(Input_Options.nCells);

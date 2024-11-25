@@ -56,8 +56,6 @@ namespace HypiC{
     HypiC::Particles_Object Initialize_Neutrals(HypiC::Options_Object Inputs);
 
     HypiC::Particles_Object Initialize_Ions(HypiC::Options_Object Inputs);
-
-    //HypiC::Time_Sum_Object Zero_Time_Sum();
     
 
     double Maxwellian_Sampler(double mu, double sigma);
