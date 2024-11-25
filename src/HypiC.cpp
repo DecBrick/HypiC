@@ -12,7 +12,7 @@ void main(){
     //initialize objects
     HypiC::Particles_Object Neutrals = HypiC::Initialize_Neutrals(Input_Options);
     HypiC::Particles_Object Ions = HypiC::Initialize_Ions(Input_Options);
-    //Electrons = HypiC::Initialize_Electrons(Input_Options);
+    HypiC::Electrons_Object Electrons = HypiC::Initialize_Electrons(Input_Options);
 
     //initial interpolations 
     //interpolate particle densities to electrons
@@ -23,7 +23,7 @@ void main(){
 
     //interpolate field back to particles
     //HypiC::Grid_to_Particles(Neutrals, Ions, Electrons);
-    
+
     //take back half step for ions (neutrals are unaffected by the field) 
     Ions.Velocity_Backstep(Input_Options.dt);
 
@@ -52,7 +52,7 @@ void main(){
         //HypiC::Grid_to_Particles(Neutrals, Ions, Electrons);
 
         //update time sum
-        //Results = HypiC::Time_Sum(Neutrals, Ions, Electrons); 
+        Results.Time_Sum(Electrons, Input_Options); 
 
         //periodic output
         if (i % Input_Options.Output_Interval == 0){

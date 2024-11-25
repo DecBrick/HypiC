@@ -22,24 +22,24 @@ namespace HypiC{
         }
     };
     //might have to add some averaging here as the interpolation step might not consider temperature
-    /*void Time_Sum_Object::Time_Sum(HypiC::Electron_Object Quantities){
+    void Time_Sum_Object::Time_Sum(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters){
         //increment time
-        time += Quantities.dt
+        time += Simulation_Parameters.dt;
         //sum quantities
-        for (size_t i=0; i<Inputs.nCells; ++i){
-            this->Neutral_Density_m3[i] += Electron_Object.nn[i];
-            this->Neutral_Velocity_m_s[i] += Electron_Object.nv[i];
-            this->Neutral_Temperature_K[i] += Electron_Object.Tn[i];
-            this->Plasma_Density_m3[i] += Electron_Object.ne[i];
-            this->Ion_Velocity_m_s[i] += Electron_Object.vz[i];
-            this->Ion_Temperature_eV[i] += Electron_Object.Ti[i];
-            this->Electron_Velocity_m_s[i] += Electron_Object.ev[i];
-            this->Electron_Temperature_eV[i] += Electron_Object.Te[i];
-            this->Magnetic_Field_G[i] += Electron_Object.B[i];
-            this->Electric_Field_V_m[i] += Electron_Object.E[i];
-            this->Anomalous_Frequency_Hz[i] += Electron_Object.nu_an[i];
+        for (size_t i=0; i<Simulation_Parameters.nCells; ++i){
+            this->Neutral_Density_m3[i] += Electrons.Neutral_Density_m3[i];
+            this->Neutral_Velocity_m_s[i] += Electrons.Neutral_Velocity_m_s[i];
+            this->Neutral_Temperature_K[i] += Electrons.Neutral_Temperature_K[i];
+            this->Plasma_Density_m3[i] += Electrons.Plasma_Density_m3[i];
+            this->Ion_Velocity_m_s[i] += Electrons.Ion_Velocity_m_s[i];
+            this->Ion_Temperature_eV[i] += Electrons.Ion_Temperature_eV[i];
+            this->Electron_Velocity_m_s[i] += Electrons.Electron_Velocity_m_s[i];
+            this->Electron_Temperature_eV[i] += Electrons.Electron_Temperature_eV[i];
+            this->Magnetic_Field_G[i] += Electrons.Magnetic_Field_G[i];
+            this->Electric_Field_V_m[i] += Electrons.Electric_Field_V_m[i];
+            this->Anomalous_Frequency_Hz[i] += Electrons.Anomalous_Frequency_Hz[i];
         }
-    };*/
+    };
 
     void Time_Sum_Object::Write_Output(std::string Filename, size_t nCells){
         int digits = 3;

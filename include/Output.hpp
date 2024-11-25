@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 #include <string>
+#include "Electrons_Object.hpp"
+#include "Initialize.hpp"
 
 namespace HypiC{
     
@@ -20,7 +22,7 @@ namespace HypiC{
             std::vector<double> Anomalous_Frequency_Hz;
         public:
             void Initialize_Time_Sum(size_t nCells);
-            //void Time_Sum(HypiC::Electron_Object Quantities);
+            void Time_Sum(HypiC::Electrons_Object Quantities, HypiC::Options_Object Simulation_Parameters);
             void Write_Output(std::string Filename, size_t nCells);
 
     };
