@@ -336,13 +336,8 @@ namespace HypiC{
 
             EnergyDensity = ne * Te * 3/2;
 
-            v = HypiC::Maxwellian_Sampler(HypiC::Initial_Ion_Bulk_Velocity(Inputs.Initial_Anode_Temperature_eV, Inputs.Discharge_Voltage_V,
-            z, Inputs.Channel_Length_m, Inputs.Domain_Length_m), sqrt(kb * Inputs.Initial_Ion_Temperature_K / mass));
-            if (v>3e8){
-                std::cout << z << "\n";
-                std::cout << HypiC::Initial_Ion_Bulk_Velocity(Inputs.Initial_Anode_Temperature_eV, Inputs.Discharge_Voltage_V,
-                z, Inputs.Channel_Length_m, Inputs.Domain_Length_m) << "\n";         
-            }
+            v = HypiC::Initial_Ion_Bulk_Velocity(Inputs.Initial_Anode_Temperature_eV, Inputs.Discharge_Voltage_V,
+            z, Inputs.Channel_Length_m, Inputs.Domain_Length_m);
 
             // Utilizing Case 2 from 
             // https://0534de96-08f4-4c2b-82e3-b2a3f3216551.filesusr.com/ugd/8243e7_030af6befce7412ca1232089b304903e.pdf
