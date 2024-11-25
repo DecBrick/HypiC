@@ -50,6 +50,7 @@ set(HypiC_SOURCES
 "src/Rate_Table.cpp"
 "src/Initialize.cpp"
 "src/Iteration.cpp"
+"src/Output.cpp"
 )
 
 add_library(HypiC SHARED ${HypiC_SOURCES})
