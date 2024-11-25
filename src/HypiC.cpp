@@ -27,7 +27,7 @@ void main(){
     //main loop
     for(size_t i=0; i < Input_Options.nIterations; ++i){
         //update heavy species
-        HypiC::Update_Heavy_Species(Neutrals, Ions, Ionization_Rates, Input_Options.dt);
+        HypiC::Update_Heavy_Species(Neutrals, Ions, Ionization_Rates, Input_Options);
 
         //interpolate
         //HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
