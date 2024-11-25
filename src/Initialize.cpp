@@ -116,6 +116,16 @@ namespace HypiC{
         return Dist(gen);
     };
 
+    double Initial_Magnetic_Field(double B_max, double Lch, double z){
+        double B;
+        if (z < Lch){
+            B = B_max * exp(-0.5 * pow(((z-Lch)/0.011),2));
+        } else {
+            B = B_max * exp(-0.5 * pow(((z-Lch)/0.018),2));
+        }
+        return B;
+    }
+
     double Initial_Electron_Density(double z, double n_min, double n_max, double Vd, double mdot, double Lch){
         //from HallThruster.jl 
         //see https://um-pepl.github.io/HallThruster.jl/dev/initialization/
@@ -283,6 +293,73 @@ namespace HypiC{
 
         //return
         return Ions;
+    };
+
+    HypiC::Electrons_Object Initialize_Electrons(HypiC::Options_Object Inputs)
+    {
+        int Particles_per_cell;
+        double z;
+        double z_particle;
+        double dz;
+        double ne;
+        double Te;
+        double v;
+        double w;
+        double mass;
+        double kb;
+        double EnergyDensity;
+        double B;
+        double f;
+        double Efield;
+
+        //calculate grid increment (assuming uniformly spaced)
+        dz = Inputs.Domain_Length_m / Inputs.nCells;
+
+        //create the particle class instance
+        HypiC::Electrons_Object Electrons = HypiC::Electrons_Object();
+        mass = 131.29 * 1.66053907e-27;//for Xe
+        kb = 1.380649e-23;
+        srand(time(NULL));
+
+        //loop over grid cells
+        for(size_t c=0; c<Inputs.nCells; ++c){
+            //calculate number of particles per cell and the position
+            z = 0.5 * dz + dz * c;
+
+            ne = HypiC::Initial_Electron_Density(z, Inputs.Initial_Min_Ion_Density,
+            Inputs.Initial_Max_Ion_Density, Inputs.Discharge_Voltage_V, Inputs.Mass_Flow_Rate_kg_s, 
+            Inputs.Channel_Length_m);
+            Te = HypiC::Initial_Electron_Temperature(z, Inputs.Initial_Anode_Temperature_eV,
+            Inputs.Initial_Cathode_Temperature_eV, Inputs.Initial_Max_Electron_Temperature_eV, 
+            Inputs.Channel_Length_m, Inputs.Domain_Length_m);
+            B = HypiC::Initial_Magnetic_Field(0.015, Inputs.Channel_Length_m, z_particle);
+
+            EnergyDensity = ne * Te * 3/2;
+
+            v = HypiC::Maxwellian_Sampler(HypiC::Initial_Ion_Bulk_Velocity(Inputs.Initial_Anode_Temperature_eV, Inputs.Discharge_Voltage_V,
+            z, Inputs.Channel_Length_m, Inputs.Domain_Length_m), sqrt(kb * Inputs.Initial_Ion_Temperature_K / mass));
+            if (v>3e8){
+                std::cout << z << "\n";
+                std::cout << HypiC::Initial_Ion_Bulk_Velocity(Inputs.Initial_Anode_Temperature_eV, Inputs.Discharge_Voltage_V,
+                z, Inputs.Channel_Length_m, Inputs.Domain_Length_m) << "\n";         
+            }
+
+            // Utilizing Case 2 from 
+            // https://0534de96-08f4-4c2b-82e3-b2a3f3216551.filesusr.com/ugd/8243e7_030af6befce7412ca1232089b304903e.pdf
+            if (z <= Inputs.Channel_Length_m) {
+                f = 0.5e7;
+            } else {
+                f = 1e7;
+            }
+
+            Efield = 2;
+
+            //Add the particle
+            Electrons.Add_Electron(ne, Te, B, EnergyDensity, v, f, Efield);
+        }
+
+        //return
+        return Electrons;
     };
 
 }

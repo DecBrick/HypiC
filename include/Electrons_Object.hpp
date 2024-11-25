@@ -29,6 +29,8 @@ namespace HypiC{
             Electrons_Object();
             ~Electrons_Object();
 
-        void Add_Electron(double electron_density, double electron_temp, double charge_density, double magnetic_field);
+        void Add_Electron(double electron_density, double electron_temp,
+    double magnetic_field, double energy_density,double electron_velocity, double anom_freq, 
+    double Efield);
     };
 }
