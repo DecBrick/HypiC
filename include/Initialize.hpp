@@ -3,6 +3,7 @@
 #include <string>
 #include <cmath>
 #include "Particles_Object.hpp"
+#include "Electrons_Object.hpp"
 #include "Output.hpp"
 
 namespace HypiC{
@@ -42,9 +43,6 @@ namespace HypiC{
             //Read from file 
             void Read_Input(std::string Filename);
     };
-
-
-    
     
 
     double Initial_Electron_Density(double z, double n_min, double n_max, double Vd, double mdot, double Lch);
@@ -56,6 +54,8 @@ namespace HypiC{
     HypiC::Particles_Object Initialize_Neutrals(HypiC::Options_Object Inputs);
 
     HypiC::Particles_Object Initialize_Ions(HypiC::Options_Object Inputs);
+
+    HypiC::Electrons_Object Initialize_Electrons(HypiC::Options_Object Inputs);
 
     //HypiC::Time_Sum_Object Zero_Time_Sum();
     

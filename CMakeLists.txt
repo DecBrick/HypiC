@@ -46,6 +46,7 @@ endif()
 
 # Source files
 set(HypiC_SOURCES
+"src/Electrons_Object.cpp"
 "src/Particles_Object.cpp"
 "src/Rate_Table.cpp"
 "src/Initialize.cpp"

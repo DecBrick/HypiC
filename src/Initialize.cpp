@@ -285,6 +285,59 @@ namespace HypiC{
         return Ions;
     };
 
+    HypiC::Electrons_Object Initialize_Electrons(HypiC::Options_Object Inputs)
+    {
+        int Particles_per_cell;
+        double z;
+        double z_particle;
+        double dz;
+        double ne;
+        double Te;
+        double v;
+        double w;
+        double mass;
+        double kb;
+        double ChargeDensity;
+
+        //calculate grid increment (assuming uniformly spaced)
+        dz = Inputs.Domain_Length_m / Inputs.nCells;
+
+        //create the particle class instance
+        HypiC::Electrons_Object Electrons = HypiC::Electrons_Object();
+        mass = 131.29 * 1.66053907e-27;//for Xe
+        kb = 1.380649e-23;
+        srand(time(NULL));
+
+        //loop over grid cells
+        for(size_t c=0; c<Inputs.nCells; ++c){
+            //calculate number of particles per cell and the position
+            Particles_per_cell = Inputs.N_Ions / Inputs.nCells;
+            z = dz * c;
+            
+            //loop over the particles in the cell
+            for(size_t p=0; p<Particles_per_cell; ++p){
+                //uniformly sample
+                //later add to the position 
+                z_particle = z + dz * (rand()/RAND_MAX);
+
+                ne = HypiC::Initial_Electron_Density(z_particle, Inputs.Initial_Min_Ion_Density,
+                Inputs.Initial_Max_Ion_Density, Inputs.Discharge_Voltage_V, Inputs.Mass_Flow_Rate_kg_s, 
+                Inputs.Channel_Length_m);
+                Te = HypiC::Initial_Electron_Temperature(z_particle, Inputs.Initial_Anode_Temperature_eV,
+                Inputs.Initial_Cathode_Temperature_eV, Inputs.Initial_Max_Electron_Temperature_eV, 
+                Inputs.Channel_Length_m, Inputs.Domain_Length_m);
+
+                ChargeDensity = ne * Te * 3/2;
+
+                //Add the particle
+                Electrons.Add_Electron(ne, ChargeDensity);
+            }
+        }
+
+        //return
+        return Electrons;
+    };
+
     //HypiC::Time_Sum_Object Zero_Time_Sum(){
     //    return;
     //};

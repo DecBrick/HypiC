@@ -4,6 +4,7 @@
 
 
 //add headers for classes 
+#include "Electrons_Object.hpp"
 #include "Particles_Object.hpp"
 #include "Rate_Table.hpp"
 #include "Initialize.hpp"
