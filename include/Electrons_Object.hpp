@@ -10,6 +10,10 @@
 namespace HypiC{
     class Electrons_Object{
         private:
+
+        public:
+            Electrons_Object();
+            ~Electrons_Object();
             std::vector<double> EnergyDensity;
             std::vector<double> Neutral_Density_m3;
             std::vector<double> Neutral_Velocity_m_s;
@@ -25,12 +29,8 @@ namespace HypiC{
 
             size_t _nElectrons = 0;
 
-        public:
-            Electrons_Object();
-            ~Electrons_Object();
-
         void Add_Electron(double electron_density, double electron_temp,
-    double magnetic_field, double energy_density,double electron_velocity, double anom_freq, 
-    double Efield);
+        double magnetic_field, double energy_density,double electron_velocity, double anom_freq, 
+        double Efield);
     };
 }
