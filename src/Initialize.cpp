@@ -332,7 +332,7 @@ namespace HypiC{
             Te = HypiC::Initial_Electron_Temperature(z, Inputs.Initial_Anode_Temperature_eV,
             Inputs.Initial_Cathode_Temperature_eV, Inputs.Initial_Max_Electron_Temperature_eV, 
             Inputs.Channel_Length_m, Inputs.Domain_Length_m);
-            B = HypiC::Initial_Magnetic_Field(0.015, Inputs.Channel_Length_m, z_particle);
+            B = HypiC::Initial_Magnetic_Field(0.015, Inputs.Channel_Length_m, z);
 
             EnergyDensity = ne * Te * 3/2;
 
@@ -350,7 +350,7 @@ namespace HypiC{
             Efield = 2;
 
             //Add the particle
-            Electrons.Add_Electron(ne, Te, B, EnergyDensity, v, f, Efield);
+            Electrons.Add_Electron(ne, Te, B, EnergyDensity, v, f, Efield, z);
         }
 
         //return

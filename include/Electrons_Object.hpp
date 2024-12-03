@@ -14,7 +14,11 @@ namespace HypiC{
         public:
             Electrons_Object();
             ~Electrons_Object();
+            std::vector<double> Cell_Center;
             std::vector<double> Electron_Pressure;
+            std::vector<double> Electron_Pressure_Gradient;
+            std::vector<double> Electron_Kinetic_Energy;
+            std::vector<double> Discharge_Current;
             std::vector<double> EnergyDensity;
             std::vector<double> Neutral_Density_m3;
             std::vector<double> Neutral_Velocity_m_s;
@@ -27,11 +31,18 @@ namespace HypiC{
             std::vector<double> Magnetic_Field_G;
             std::vector<double> Electric_Field_V_m;
             std::vector<double> Anomalous_Frequency_Hz;
+            std::vector<double> Freq_Elec_Neutral;
+            std::vector<double> Freq_Classical;
+            std::vector<double> Freq_Electron_Wall_Collision;
+            std::vector<double> Freq_Anomalous_Collision;
+            std::vector<double> Freq_Total_Electron_Collision;
+            std::vector<double> Electron_Mobility;
+            std::vector<double> Ion_Z;
 
             size_t _nElectrons = 0;
 
         void Add_Electron(double electron_density, double electron_temp,
         double magnetic_field, double energy_density,double electron_velocity, double anom_freq, 
-        double Efield);
+        double Efield, double cell_center);
     };
 }

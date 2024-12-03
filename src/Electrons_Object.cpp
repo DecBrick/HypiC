@@ -23,8 +23,9 @@ namespace HypiC
 
     void Electrons_Object::Add_Electron(double electron_density, double electron_temp,
     double magnetic_field, double energy_density,double electron_velocity, double anom_freq, 
-    double Efield){
+    double Efield, double cell_center){
         //add the values
+        this->Cell_Center.push_back(cell_center);
         this->Plasma_Density_m3.push_back(electron_density);
         this->Electron_Temperature_eV.push_back(electron_temp);
         this->Magnetic_Field_G.push_back(magnetic_field);
