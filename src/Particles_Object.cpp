@@ -84,6 +84,10 @@ namespace HypiC
         this->_Velocities[index] = value;
     }
 
+    void Particles_Object::set_ElectricField(size_t index, double value){
+        this->_ElectricField[index] = value;
+    }
+
     //accessor methods
     double Particles_Object::get_Position(size_t index){
         return this->_Positions[index];

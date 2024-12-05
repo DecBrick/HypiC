@@ -10,6 +10,6 @@
 #include "Initialize.hpp"
 #include "Iteration.hpp"
 #include "Output.hpp"
-
+#include "Interpolate.hpp"
 
 #endif // _HypiC_

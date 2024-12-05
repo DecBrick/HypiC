@@ -43,13 +43,13 @@ void main(){
         HypiC::Update_Heavy_Species(Neutrals, Ions, Ionization_Rates, Input_Options);
 
         //interpolate
-        //HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
+        HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
 
         //update electrons
         //HypiC::Update_Electrons(Electrons);
 
         //interpolate
-        //HypiC::Grid_to_Particles(Neutrals, Ions, Electrons);
+        HypiC::Grid_to_Particles(Ions, Electrons);
 
         //update time sum
         Results.Time_Sum(Electrons, Input_Options); 
