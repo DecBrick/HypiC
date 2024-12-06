@@ -159,7 +159,7 @@ namespace HypiC{
                 Electrons.Ion_Current_Density[c] = Electrons.Ion_Z[c] * Electrons.Plasma_Density_m3[c] * Electrons.Ion_Velocity_m_s[c];
             }
             //Discharge Voltage
-            double Discharge_Current = Integrate_Discharge_Current(Electrons, Simulation_Parameters,Electrons.Ion_Current_Density);
+            double Discharge_Current = Integrate_Discharge_Current(Electrons, Simulation_Parameters);
 
             //Electron Velocity + Electron Kinetic
             for(size_t c1=0; c1<Simulation_Parameters.nCells; ++c1){
@@ -224,15 +224,15 @@ namespace HypiC{
         return c0 * f0 + c1 * f1 + c2 * f2;
     }
 
-    double Integrate_Discharge_Current(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters, std::vector<double> ji){
+    double Integrate_Discharge_Current(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters){
         double int1 = 0;
         double int2 = 0;
         double Dz = Simulation_Parameters.Domain_Length_m / Simulation_Parameters.nCells;
 
         for (size_t c=0; c<Simulation_Parameters.nCells-1; ++c){
             double dz = Dz * c;
-            double int1_1 = (ji[c]/1.602176634e-19/Electrons.Electron_Mobility[c] + Electrons.Electron_Pressure_Gradient[c]/Electrons.EnergyDensity[c]);
-            double int1_2 = (ji[c+1]/1.602176634e-19/Electrons.Electron_Mobility[c+1] + Electrons.Electron_Pressure_Gradient[c+1]/Electrons.EnergyDensity[c+1]);
+            double int1_1 = (Electrons.Ion_Current_Density[c]/1.602176634e-19/Electrons.Electron_Mobility[c] + Electrons.Electron_Pressure_Gradient[c]/Electrons.EnergyDensity[c]);
+            double int1_2 = (Electrons.Ion_Current_Density[c+1]/1.602176634e-19/Electrons.Electron_Mobility[c+1] + Electrons.Electron_Pressure_Gradient[c+1]/Electrons.EnergyDensity[c+1]);
 
             int1 += 0.5 * dz * (int1_1 + int1_2);
 
