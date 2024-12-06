@@ -41,6 +41,7 @@ namespace HypiC{
             std::vector<double> Freq_Total_Electron_Collision;
             std::vector<double> Electron_Mobility;
             std::vector<double> Ion_Z;
+            std::vector<double> Ionization_Rate;
 
             double Grid_Step = 0.0;
             size_t _nElectrons = 0;

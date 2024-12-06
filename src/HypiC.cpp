@@ -30,7 +30,7 @@ void main(){
 
     //initialize outputs 
     HypiC::Time_Sum_Object Results = HypiC::Time_Sum_Object();
-    Results.Initialize_Time_Sum(Input_Options.nCells);
+    Results.Initialize_Time_Sum(Input_Options.nCells, Electrons);
     
     //read the ionization rates. 
     HypiC::Rate_Table_Object Ionization_Rates = HypiC::Rate_Table_Object();

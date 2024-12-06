@@ -131,6 +131,9 @@ namespace HypiC{
             //Seems like Radial Loss Freq is a constant 1e7 for Landmark?
           
             Electrons.Freq_Electron_Wall_Collision[c] = 1e7 * Linear_Transition(Electrons.Cell_Center[c],Simulation_Parameters.Channel_Length_m, 0.2*Simulation_Parameters.Channel_Length_m,1,0);
+
+            //update the ionization rate
+            Electrons.Ionization_Rate[c] = Ionization_Rates.interpolate(Electrons.Electron_Temperature_eV[c]);
         }
             //Anomalous transport?
         for(size_t c1=0; c1<Simulation_Parameters.nCells; ++c1){
