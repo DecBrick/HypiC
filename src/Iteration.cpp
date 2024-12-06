@@ -203,6 +203,12 @@ namespace HypiC{
         Electrons.Electron_Pressure_Gradient[end] = Backward_Difference(Electrons.Electron_Pressure[end-2],Electrons.Electron_Pressure[end-1],Electrons.Electron_Pressure[end],Electrons.Cell_Center[end-2],Electrons.Cell_Center[end-1],Electrons.Cell_Center[end]);
     }
 
+    void Update_Thermal_Conductivity(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters){
+        for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
+            Electrons.Electron_Thermal_Conductivity[i] = (10 / (9 * 1.602176634e-19)) * Electrons.Electron_Mobility[i] * Electrons.Plasma_Density_m3[i] * Electrons.EnergyDensity[i];
+        }
+    }
+
     double Forward_Difference(double f0, double f1, double f2, double x0, double x1, double x2){
         double h1 = x1 - x0;
         double h2 = x2 - x1;

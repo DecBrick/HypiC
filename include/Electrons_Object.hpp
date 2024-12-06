@@ -18,6 +18,7 @@ namespace HypiC{
             std::vector<double> Electron_Pressure;
             std::vector<double> Electron_Pressure_Gradient;
             std::vector<double> Electron_Kinetic_Energy;
+            std::vector<double> Electron_Thermal_Conductivity;
             std::vector<double> Discharge_Current;
             std::vector<double> EnergyDensity;
             std::vector<double> Neutral_Density_m3;
