@@ -171,14 +171,21 @@ namespace HypiC{
 
         Compute_Electric_Field(Electrons,Simulation_Parameters, Discharge_Current);
 
-        //Solve_Potential(Electrons,Simulation_Parameters);
+        Solve_Potential(Electrons,Simulation_Parameters);
 
         //Update_Thermal_Conductivity(Electrons,Simulation_Parameters);
 
         //Update_Electron_Energy(Electrons,Simulation_Parameters);
     }
 
+    void Solve_Potential(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters){
+        Electrons.Potential[0] = Simulation_Parameters.Discharge_Voltage_V;
 
+        for(size_t i=1; i<Simulation_Parameters.nCells; ++i){
+            double dx = Electrons.Cell_Center[i] - Electrons.Cell_Center[i-1];
+            Electrons.Potential[i] = Electrons.Potential[i-1] + 0.5 * dx * (Electrons.Electric_Field_V_m[i] + Electrons.Electric_Field_V_m[i+1]);
+        }
+    }
 
     void Compute_Electric_Field(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters, double Discharge_Current){
         for(size_t i=0; i<Simulation_Parameters.nCells; ++i){

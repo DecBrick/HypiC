@@ -31,6 +31,7 @@ namespace HypiC{
             std::vector<double> Electron_Temperature_eV;
             std::vector<double> Magnetic_Field_G;
             std::vector<double> Electric_Field_V_m;
+            std::vector<double> Potential;
             std::vector<double> Anomalous_Frequency_Hz;
             std::vector<double> Freq_Elec_Neutral;
             std::vector<double> Freq_Classical;

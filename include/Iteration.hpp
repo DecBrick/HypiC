@@ -10,6 +10,9 @@ namespace HypiC{
     //double Freq_Electron_Ion(double EnergyDensity, double ElectronTemp, double IonZ);
 
     //double Coulomb_Logarithm(double EnergyDensity, double ElectronTemp, double IonZ);
+
+    void Solve_Potential(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters);
+
     double Forward_Difference(double f0, double f1, double f2, double x0, double x1, double x2);
 
     double Central_Difference(double f0, double f1, double f2, double x0, double x1, double x2);
