@@ -39,10 +39,14 @@ namespace HypiC{
             std::vector<double> Electron_Mobility;
             std::vector<double> Ion_Z;
 
+            double Grid_Step = 0.0;
             size_t _nElectrons = 0;
 
-        void Add_Electron(double electron_density, double electron_temp,
-        double magnetic_field, double energy_density,double electron_velocity, double anom_freq, 
-        double Efield, double cell_center);
+            void Add_Electron(double electron_density, double electron_temp,
+            double magnetic_field, double energy_density,double electron_velocity, double anom_freq, 
+            double Efield, double cell_center);
+            void Set_Densities(size_t index, double neutral_density, double plasma_density);
+            void Set_Velocities(size_t index, double neutral_velocity, double ion_velocity);
+            double Get_ElectricField(size_t index);
     };
 }
