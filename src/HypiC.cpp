@@ -19,8 +19,8 @@ void main(){
     HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
 
     //solve electric field for electrons, add ji to the electrons object 
-    //double Discharge_Current = Integrate_Discharge_Current(Electrons, Simulation_Parameters,ji);
-    //HypiC::Compute_Electric_Field(Electrons,Input_Options, ji, Discharge_Current); //or whatever the function is
+    double Discharge_Current = Integrate_Discharge_Current(Electrons, Input_Options);
+    HypiC::Compute_Electric_Field(Electrons, Input_Options, Discharge_Current); //or whatever the function is
 
     //interpolate field back to particles
     HypiC::Grid_to_Particles(Ions, Electrons);
