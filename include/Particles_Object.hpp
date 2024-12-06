@@ -35,6 +35,8 @@ namespace HypiC{
             void Update_Particle(size_t index, double dt, HypiC::Rate_Table_Object);
             void set_Position(size_t index, double value);
             void set_Velocity(size_t index, double value);
+            void set_ElectronDensity(size_t index, double value);
+            void set_ElectronTemperature(size_t index, double value);
             void set_ElectricField(size_t index, double value);
             void Velocity_Backstep(double dt);
             //accessor methods
