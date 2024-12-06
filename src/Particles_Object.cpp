@@ -84,6 +84,14 @@ namespace HypiC
         this->_Velocities[index] = value;
     }
 
+    void Particles_Object::set_ElectronDensity(size_t index, double value){
+        this->_ElectronDensity[index] = value;
+    }
+    
+    void Particles_Object::set_ElectronTemperature(size_t index, double value){
+        this->_ElectronTemperature[index] = value;
+    }
+    
     void Particles_Object::set_ElectricField(size_t index, double value){
         this->_ElectricField[index] = value;
     }

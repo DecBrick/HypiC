@@ -38,7 +38,7 @@ namespace HypiC
         this->_nElectrons+=1;
     }
 
-    void Electrons_Object::Set_Densities(size_t index, double neutral_density, double plasma_density){
+    void Electrons_Object::Set_Densities(size_t index, double neutral_density, double plasma_density, double current_density){
         this->Neutral_Density_m3[index] = neutral_density;
         this-> Plasma_Density_m3[index] = plasma_density;
     }
@@ -46,6 +46,19 @@ namespace HypiC
     void Electrons_Object::Set_Velocities(size_t index, double neutral_velocity, double ion_velocity){
         this->Neutral_Velocity_m_s[index];
         this->Ion_Velocity_m_s[index];
+        this->Ion_Current_Density[index];
+    }
+
+    double Electrons_Object::Get_CellCenter(size_t index){
+        return this->Cell_Center[index];
+    }
+    
+    double Electrons_Object::Get_PlasmaDensity(size_t index){
+        return this->Plasma_Density_m3[index];
+    }
+
+    double Electrons_Object::Get_ElectronTemperature(size_t index){
+        return this->Electron_Temperature_eV[index];
     }
 
     double Electrons_Object::Get_ElectricField(size_t index){

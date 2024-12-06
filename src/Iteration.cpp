@@ -154,9 +154,7 @@ namespace HypiC{
             Electrons.Electron_Mobility[c1] = 1.602176634e-19 / (9.10938356e-31 * Electrons.Freq_Total_Electron_Collision[c1] * (1+pow(Omega,2)));
         
         }
-        for (size_t c=0; c<Simulation_Parameters.nCells; ++c){
-            Electrons.Ion_Current_Density[c] = Electrons.Ion_Z[c] * Electrons.Plasma_Density_m3[c] * Electrons.Ion_Velocity_m_s[c];
-        }
+        
         //Discharge Voltage
         double Discharge_Current = Integrate_Discharge_Current(Electrons, Simulation_Parameters);
 
