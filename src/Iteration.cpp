@@ -169,7 +169,7 @@ namespace HypiC{
         //Compute Pressure graidient, EFIeld, Potential, Thermal Conductivity, Energy
         Compute_Pressure_Gradient(Electrons,Simulation_Parameters);
 
-            Compute_Electric_Field(Electrons,Simulation_Parameters, Discharge_Current);
+        Compute_Electric_Field(Electrons,Simulation_Parameters, Discharge_Current);
 
         //Solve_Potential(Electrons,Simulation_Parameters);
 
@@ -180,7 +180,7 @@ namespace HypiC{
 
 
 
-    void Compute_Electric_Field(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters, std::vector<double> ji, double Discharge_Current){
+    void Compute_Electric_Field(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters, double Discharge_Current){
         for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
             double E = ((Discharge_Current / Simulation_Parameters.Channel_Area_m2 - Electrons.Ion_Current_Density[i])/1.602176634e-19/Electrons.Electron_Mobility[i] - Electrons.Electron_Pressure_Gradient[i]/Electrons.EnergyDensity[i]);
             Electrons.Electric_Field_V_m[i] = -E;
