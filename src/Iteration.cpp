@@ -110,9 +110,12 @@ namespace HypiC{
             Remove_These.pop_back();//remove from the reflect list
         }
     };
-    void Update_Electrons(HypiC::Electrons_Object Electrons, HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Rate_Table_Object Ionization_Rates, HypiC::Options_Object Simulation_Parameters, double t){
+
+
+
+    void Update_Electrons(HypiC::Electrons_Object Electrons, HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Rate_Table_Object Ionization_Rates, HypiC::Options_Object Simulation_Parameters){ //,double t){
         for(size_t c=0; c<Simulation_Parameters.nCells; ++c){
-            double t = 0;
+            //double t = 0;
             Electrons.Electron_Temperature_eV[c] = 2/3 * Electrons.EnergyDensity[c]/Electrons.Plasma_Density_m3[c];
             Electrons.Electron_Pressure[c] =  1.5 * Electrons.EnergyDensity[c] * Electrons.Electron_Temperature_eV[c];
 
@@ -132,14 +135,14 @@ namespace HypiC{
             
             //Anomalous transport?
             for(size_t c1=0; c1<Simulation_Parameters.nCells; ++c1){
-                if (t > 0) {
+                //if (t > 0) {
                     double Elec_Cycl_Freq = 1.602176634e-19 * Electrons.Magnetic_Field_G[c1] / 9.10938356e-31;
 
                     //Might need to change this to 0.1, 1?
                     double Beta = Linear_Transition(Electrons.Cell_Center[c1],Simulation_Parameters.Channel_Length_m, 0.2*Simulation_Parameters.Channel_Length_m, 1/160,1/16);
 
                     Electrons.Freq_Anomalous_Collision[c1] = Elec_Cycl_Freq * Beta;
-                }
+                //}
             }
             
             //Smooth? - Not necessary
@@ -170,11 +173,11 @@ namespace HypiC{
 
             Compute_Electric_Field(Electrons,Simulation_Parameters, ji, Discharge_Current);
 
-            Solve_Potential(Electrons,Simulation_Parameters);
+            //Solve_Potential(Electrons,Simulation_Parameters);
 
-            Update_Thermal_Conductivity(Electrons,Simulation_Parameters);
+            //Update_Thermal_Conductivity(Electrons,Simulation_Parameters);
 
-            Update_Electron_Energy(Electrons,Simulation_Parameters);
+            //Update_Electron_Energy(Electrons,Simulation_Parameters);
         }
     }
 

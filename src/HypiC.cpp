@@ -46,7 +46,7 @@ void main(){
         //HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
 
         //update electrons
-        //HypiC::Update_Electrons(Electrons);
+        HypiC::Update_Electrons(Electrons, Neutrals, Ions, Ionization_Rates, Input_Options);
 
         //interpolate
         //HypiC::Grid_to_Particles(Neutrals, Ions, Electrons);
