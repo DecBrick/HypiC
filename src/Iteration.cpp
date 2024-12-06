@@ -115,7 +115,6 @@ namespace HypiC{
 
     void Update_Electrons(HypiC::Electrons_Object Electrons, HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Rate_Table_Object Ionization_Rates, HypiC::Options_Object Simulation_Parameters){ //,double t){
         for(size_t c=0; c<Simulation_Parameters.nCells; ++c){
-            //double t = 0;
             Electrons.Electron_Temperature_eV[c] = 2/3 * Electrons.EnergyDensity[c]/Electrons.Plasma_Density_m3[c];
             Electrons.Electron_Pressure[c] =  1.5 * Electrons.EnergyDensity[c] * Electrons.Electron_Temperature_eV[c];
 
@@ -132,53 +131,54 @@ namespace HypiC{
             //Seems like Radial Loss Freq is a constant 1e7 for Landmark?
           
             Electrons.Freq_Electron_Wall_Collision[c] = 1e7 * Linear_Transition(Electrons.Cell_Center[c],Simulation_Parameters.Channel_Length_m, 0.2*Simulation_Parameters.Channel_Length_m,1,0);
-            
-            //Anomalous transport?
-            for(size_t c1=0; c1<Simulation_Parameters.nCells; ++c1){
-                //if (t > 0) {
-                    double Elec_Cycl_Freq = 1.602176634e-19 * Electrons.Magnetic_Field_G[c1] / 9.10938356e-31;
-
-                    //Might need to change this to 0.1, 1?
-                    double Beta = Linear_Transition(Electrons.Cell_Center[c1],Simulation_Parameters.Channel_Length_m, 0.2*Simulation_Parameters.Channel_Length_m, 1/160,1/16);
-
-                    Electrons.Freq_Anomalous_Collision[c1] = Elec_Cycl_Freq * Beta;
-                //}
-            }
-            
-            //Smooth? - Not necessary
-            //std::vector<double> Freq_Anomalous_Copy = Electrons.Freq_Anomalous_Collision;
-            //Smooth(Electrons.Freq_Anomalous_Collision, Freq_Anomalous_Copy, Iterations)
-            for(size_t c1=0; c1<Simulation_Parameters.nCells; ++c1){
-                Electrons.Freq_Total_Electron_Collision[c1] = Electrons.Freq_Electron_Wall_Collision[c1] + Electrons.Freq_Anomalous_Collision[c1] + Electrons.Freq_Classical[c1];
-
-                double Omega =  1.602176634e-19 * Electrons.Magnetic_Field_G[c1] / (9.10938356e-31 *Electrons.Freq_Total_Electron_Collision[c1]);
-                Electrons.Electron_Mobility[c1] = 1.602176634e-19 / (9.10938356e-31 * Electrons.Freq_Total_Electron_Collision[c1] * (1+pow(Omega,2)));
-        
-            }
-            for (size_t c=0; c<Simulation_Parameters.nCells; ++c){
-                Electrons.Ion_Current_Density[c] = Electrons.Ion_Z[c] * Electrons.Plasma_Density_m3[c] * Electrons.Ion_Velocity_m_s[c];
-            }
-            //Discharge Voltage
-            double Discharge_Current = Integrate_Discharge_Current(Electrons, Simulation_Parameters);
-
-            //Electron Velocity + Electron Kinetic
-            for(size_t c1=0; c1<Simulation_Parameters.nCells; ++c1){
-                Electrons.Electron_Velocity_m_s[c1] = (Electrons.Ion_Current_Density[c1] - Discharge_Current/Simulation_Parameters.Channel_Area_m2/1.602176634e-19 / Electrons.EnergyDensity[c1]);
-                Electrons.Electron_Kinetic_Energy[c1] = 0.5 * 9.10938356e-31 * (1 + pow(1.602176634e-19*Electrons.Magnetic_Field_G[c1]/9.10938356e-31/Electrons.Freq_Total_Electron_Collision[c1],2)*pow(Electrons.Electron_Velocity_m_s[c1],2)/1.602176634e-19);
-            }
-
-            //Compute Pressure graidient, EFIeld, Potential, Thermal Conductivity, Energy
-            Compute_Pressure_Gradient(Electrons,Simulation_Parameters);
-
-            Compute_Electric_Field(Electrons,Simulation_Parameters, Electrons.Ion_Current_Density, Discharge_Current);
-
-            //Solve_Potential(Electrons,Simulation_Parameters);
-
-            //Update_Thermal_Conductivity(Electrons,Simulation_Parameters);
-
-            //Update_Electron_Energy(Electrons,Simulation_Parameters);
         }
+            //Anomalous transport?
+        for(size_t c1=0; c1<Simulation_Parameters.nCells; ++c1){
+
+            double Elec_Cycl_Freq = 1.602176634e-19 * Electrons.Magnetic_Field_G[c1] / 9.10938356e-31;
+
+            //Might need to change this to 0.1, 1?
+            double Beta = Linear_Transition(Electrons.Cell_Center[c1],Simulation_Parameters.Channel_Length_m, 0.2*Simulation_Parameters.Channel_Length_m, 1/160,1/16);
+
+            Electrons.Freq_Anomalous_Collision[c1] = Elec_Cycl_Freq * Beta;
+
+        }
+            
+        //Smooth? - Not necessary
+        //std::vector<double> Freq_Anomalous_Copy = Electrons.Freq_Anomalous_Collision;
+        //Smooth(Electrons.Freq_Anomalous_Collision, Freq_Anomalous_Copy, Iterations)
+        for(size_t c1=0; c1<Simulation_Parameters.nCells; ++c1){
+            Electrons.Freq_Total_Electron_Collision[c1] = Electrons.Freq_Electron_Wall_Collision[c1] + Electrons.Freq_Anomalous_Collision[c1] + Electrons.Freq_Classical[c1];
+
+            double Omega =  1.602176634e-19 * Electrons.Magnetic_Field_G[c1] / (9.10938356e-31 *Electrons.Freq_Total_Electron_Collision[c1]);
+            Electrons.Electron_Mobility[c1] = 1.602176634e-19 / (9.10938356e-31 * Electrons.Freq_Total_Electron_Collision[c1] * (1+pow(Omega,2)));
+        
+        }
+        for (size_t c=0; c<Simulation_Parameters.nCells; ++c){
+            Electrons.Ion_Current_Density[c] = Electrons.Ion_Z[c] * Electrons.Plasma_Density_m3[c] * Electrons.Ion_Velocity_m_s[c];
+        }
+        //Discharge Voltage
+        double Discharge_Current = Integrate_Discharge_Current(Electrons, Simulation_Parameters);
+
+        //Electron Velocity + Electron Kinetic
+        for(size_t c1=0; c1<Simulation_Parameters.nCells; ++c1){
+            Electrons.Electron_Velocity_m_s[c1] = (Electrons.Ion_Current_Density[c1] - Discharge_Current/Simulation_Parameters.Channel_Area_m2/1.602176634e-19 / Electrons.EnergyDensity[c1]);
+            Electrons.Electron_Kinetic_Energy[c1] = 0.5 * 9.10938356e-31 * (1 + pow(1.602176634e-19*Electrons.Magnetic_Field_G[c1]/9.10938356e-31/Electrons.Freq_Total_Electron_Collision[c1],2)*pow(Electrons.Electron_Velocity_m_s[c1],2)/1.602176634e-19);
+        }
+
+        //Compute Pressure graidient, EFIeld, Potential, Thermal Conductivity, Energy
+        Compute_Pressure_Gradient(Electrons,Simulation_Parameters);
+
+        Compute_Electric_Field(Electrons,Simulation_Parameters, Electrons.Ion_Current_Density, Discharge_Current);
+
+        //Solve_Potential(Electrons,Simulation_Parameters);
+
+        //Update_Thermal_Conductivity(Electrons,Simulation_Parameters);
+
+        //Update_Electron_Energy(Electrons,Simulation_Parameters);
     }
+
+
 
     void Compute_Electric_Field(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters, std::vector<double> ji, double Discharge_Current){
         for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
