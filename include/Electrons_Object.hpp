@@ -41,6 +41,7 @@ namespace HypiC{
             std::vector<double> Freq_Total_Electron_Collision;
             std::vector<double> Electron_Mobility;
             std::vector<double> Ion_Z;
+            std::vector<double> Source_Energy;
             std::vector<double> Ionization_Rate;
 
             double Grid_Step = 0.0;
@@ -49,8 +50,11 @@ namespace HypiC{
             void Add_Electron(double electron_density, double electron_temp,
             double magnetic_field, double energy_density,double electron_velocity, double anom_freq, 
             double Efield, double cell_center);
-            void Set_Densities(size_t index, double neutral_density, double plasma_density);
+            void Set_Densities(size_t index, double neutral_density, double plasma_density, double current_density);
             void Set_Velocities(size_t index, double neutral_velocity, double ion_velocity);
+            double Get_CellCenter(size_t index);
+            double Get_PlasmaDensity(size_t index);
+            double Get_ElectronTemperature(size_t index);
             double Get_ElectricField(size_t index);
     };
 }

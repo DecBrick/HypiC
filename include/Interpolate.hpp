@@ -10,5 +10,5 @@ namespace HypiC{
 
     void Particles_to_Grid(HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Electrons_Object Electrons);
 
-    void Grid_to_Particles(HypiC::Particles_Object Ions, HypiC::Electrons_Object Electrons);
+    void Grid_to_Particles(HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Electrons_Object Electrons);
 }

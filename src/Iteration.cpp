@@ -157,9 +157,7 @@ namespace HypiC{
             Electrons.Electron_Mobility[c1] = 1.602176634e-19 / (9.10938356e-31 * Electrons.Freq_Total_Electron_Collision[c1] * (1+pow(Omega,2)));
         
         }
-        for (size_t c=0; c<Simulation_Parameters.nCells; ++c){
-            Electrons.Ion_Current_Density[c] = Electrons.Ion_Z[c] * Electrons.Plasma_Density_m3[c] * Electrons.Ion_Velocity_m_s[c];
-        }
+        
         //Discharge Voltage
         double Discharge_Current = Integrate_Discharge_Current(Electrons, Simulation_Parameters);
 
@@ -176,9 +174,39 @@ namespace HypiC{
 
         Solve_Potential(Electrons,Simulation_Parameters);
 
-        //Update_Thermal_Conductivity(Electrons,Simulation_Parameters);
+        Update_Thermal_Conductivity(Electrons,Simulation_Parameters);
 
         //Update_Electron_Energy(Electrons,Simulation_Parameters);
+    }
+
+    void Update_Electron_Energy(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters){
+        std::vector<double> diag(Simulation_Parameters.nCells,1);
+        std::vector<double> diag_low(Simulation_Parameters.nCells-1,1);
+        std::vector<double> diag_up(Simulation_Parameters.nCells,1);
+        std::vector<double> B(Simulation_Parameters.nCells,1);
+
+        diag[0] = 1;
+        diag_up[0] = 0;
+        diag[Simulation_Parameters.nCells-1] = 1;
+        diag_low[Simulation_Parameters.nCells-2] = 0;
+
+        B[0] = 0;
+        diag[0] = 1/Electrons.EnergyDensity[0];
+        diag_up[0] = -1/Electrons.EnergyDensity[1];
+
+        B[Simulation_Parameters.nCells-1] = 1.5 * Simulation_Parameters.Initial_Cathode_Temperature_eV * Electrons.EnergyDensity[Simulation_Parameters.nCells-1];
+
+        std::vector<double> OhmicHeating(Simulation_Parameters.nCells,0);
+        std::vector<double> WallPowerLoss(Simulation_Parameters.nCells,0);
+        for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
+            OhmicHeating[i] = Electrons.EnergyDensity[i] * Electrons.Electron_Velocity_m_s[i] * Electrons.Electric_Field_V_m[i];
+            
+            if ((i != 0) & (i != Simulation_Parameters.nCells-1)){
+                //WallPowerLoss[i] = 1d7 * Ae
+            }
+            Electrons.Source_Energy[i] = OhmicHeating[i] - Electrons.EnergyDensity[i] * WallPowerLoss[i]; 
+        }
+
     }
 
     void Solve_Potential(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters){
