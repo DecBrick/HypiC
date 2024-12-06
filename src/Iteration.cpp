@@ -155,23 +155,22 @@ namespace HypiC{
                 Electrons.Electron_Mobility[c1] = 1.602176634e-19 / (9.10938356e-31 * Electrons.Freq_Total_Electron_Collision[c1] * (1+pow(Omega,2)));
         
             }
-            std::vector<double> ji = Electrons.Ion_Z;
             for (size_t c=0; c<Simulation_Parameters.nCells; ++c){
-                ji[c] = Electrons.Ion_Z[c] * Electrons.Plasma_Density_m3[c] * Electrons.Ion_Velocity_m_s[c];
+                Electrons.Ion_Current_Density[c] = Electrons.Ion_Z[c] * Electrons.Plasma_Density_m3[c] * Electrons.Ion_Velocity_m_s[c];
             }
             //Discharge Voltage
-            double Discharge_Current = Integrate_Discharge_Current(Electrons, Simulation_Parameters,ji);
+            double Discharge_Current = Integrate_Discharge_Current(Electrons, Simulation_Parameters,Electrons.Ion_Current_Density);
 
             //Electron Velocity + Electron Kinetic
             for(size_t c1=0; c1<Simulation_Parameters.nCells; ++c1){
-                Electrons.Electron_Velocity_m_s[c1] = (ji[c1] - Discharge_Current/Simulation_Parameters.Channel_Area_m2/1.602176634e-19 / Electrons.EnergyDensity[c1]);
+                Electrons.Electron_Velocity_m_s[c1] = (Electrons.Ion_Current_Density[c1] - Discharge_Current/Simulation_Parameters.Channel_Area_m2/1.602176634e-19 / Electrons.EnergyDensity[c1]);
                 Electrons.Electron_Kinetic_Energy[c1] = 0.5 * 9.10938356e-31 * (1 + pow(1.602176634e-19*Electrons.Magnetic_Field_G[c1]/9.10938356e-31/Electrons.Freq_Total_Electron_Collision[c1],2)*pow(Electrons.Electron_Velocity_m_s[c1],2)/1.602176634e-19);
             }
 
             //Compute Pressure graidient, EFIeld, Potential, Thermal Conductivity, Energy
             Compute_Pressure_Gradient(Electrons,Simulation_Parameters);
 
-            Compute_Electric_Field(Electrons,Simulation_Parameters, ji, Discharge_Current);
+            Compute_Electric_Field(Electrons,Simulation_Parameters, Electrons.Ion_Current_Density, Discharge_Current);
 
             //Solve_Potential(Electrons,Simulation_Parameters);
 

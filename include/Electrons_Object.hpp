@@ -26,6 +26,7 @@ namespace HypiC{
             std::vector<double> Plasma_Density_m3;
             std::vector<double> Ion_Velocity_m_s;
             std::vector<double> Ion_Temperature_eV;
+            std::vector<double> Ion_Current_Density;
             std::vector<double> Electron_Velocity_m_s;
             std::vector<double> Electron_Temperature_eV;
             std::vector<double> Magnetic_Field_G;
