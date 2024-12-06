@@ -16,13 +16,14 @@ void main(){
 
     //initial interpolations 
     //interpolate particle densities to electrons
-    //HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
+    HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
 
-    //solve electric field for electrons
-    //Electrons.Solve_Field(); //or whatever the function is
+    //solve electric field for electrons, add ji to the electrons object 
+    //double Discharge_Current = Integrate_Discharge_Current(Electrons, Simulation_Parameters,ji);
+    //HypiC::Compute_Electric_Field(Electrons,Input_Options, ji, Discharge_Current); //or whatever the function is
 
     //interpolate field back to particles
-    //HypiC::Grid_to_Particles(Neutrals, Ions, Electrons);
+    HypiC::Grid_to_Particles(Ions, Electrons);
 
     //take back half step for ions (neutrals are unaffected by the field) 
     Ions.Velocity_Backstep(Input_Options.dt);
