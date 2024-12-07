@@ -185,6 +185,7 @@ namespace HypiC{
         std::vector<double> diag_up(Simulation_Parameters.nCells,1);
         std::vector<double> B(Simulation_Parameters.nCells,1);
 
+        //setting boundary conditions
         diag[0] = 1;
         diag_up[0] = 0;
         diag[Simulation_Parameters.nCells-1] = 1;
@@ -196,6 +197,7 @@ namespace HypiC{
 
         B[Simulation_Parameters.nCells-1] = 1.5 * Simulation_Parameters.Initial_Cathode_Temperature_eV * Electrons.EnergyDensity[Simulation_Parameters.nCells-1];
 
+        //calculate source terms
         std::vector<double> OhmicHeating(Simulation_Parameters.nCells,0);
         std::vector<double> WallPowerLoss(Simulation_Parameters.nCells,0);
         for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
@@ -206,6 +208,26 @@ namespace HypiC{
             }
             Electrons.Source_Energy[i] = OhmicHeating[i] - Electrons.EnergyDensity[i] * WallPowerLoss[i]; 
         }
+
+        //calculate fluxes (setting up linear matrix)
+        /*we have two terms we need to care about here are the convective flux (div 5/3 * flux*energy)
+        and the heat flux (div kappa nabla energy). By applying the divergence theorem we can remove the div to 
+        make the equation only based on the fluxes at the edges
+
+        For the convective flux, use upwinding, which means that we use the value in the same direction as the velocity
+        for 1D, if velocity is positive, use the cell to the left, if negative, use the cell to the right
+        do this for both edges of each cell. Then just need a factor of 5/3*ue for the respective cell's energy density
+
+        For the heat flux, use upwinding for which cell's kappa to apply and then use a central difference scheme to finite
+        difference the gradient in the energy density which adds a geometric factor. 
+        */
+       
+
+
+        //call matrix solver
+
+
+        //limit to a minimum temperature
 
     }
 
