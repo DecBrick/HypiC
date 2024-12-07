@@ -182,8 +182,10 @@ namespace HypiC{
     void Update_Electron_Energy(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters){
         std::vector<double> diag(Simulation_Parameters.nCells,1);
         std::vector<double> diag_low(Simulation_Parameters.nCells-1,1);
-        std::vector<double> diag_up(Simulation_Parameters.nCells,1);
+        std::vector<double> diag_up(Simulation_Parameters.nCells-1,1);
         std::vector<double> B(Simulation_Parameters.nCells,1);
+        double je_sheath;
+        double T0;
 
         //setting boundary conditions
         diag[0] = 1;
@@ -191,22 +193,25 @@ namespace HypiC{
         diag[Simulation_Parameters.nCells-1] = 1;
         diag_low[Simulation_Parameters.nCells-2] = 0;
 
+        //anode neuman for sheath boundary        
         B[0] = 0;
         diag[0] = 1/Electrons.EnergyDensity[0];
         diag_up[0] = -1/Electrons.EnergyDensity[1];
 
+        //cathode boundary condition
         B[Simulation_Parameters.nCells-1] = 1.5 * Simulation_Parameters.Initial_Cathode_Temperature_eV * Electrons.EnergyDensity[Simulation_Parameters.nCells-1];
 
         //calculate source terms
+        //there should be a timestep term in here too 
         std::vector<double> OhmicHeating(Simulation_Parameters.nCells,0);
         std::vector<double> WallPowerLoss(Simulation_Parameters.nCells,0);
-        for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
+        for(size_t i=0; i<Simulation_Parameters.nCells-1; ++i){ //-1 is b/c we want to fix the Cathode cell using a dirichlet condition 
             OhmicHeating[i] = Electrons.EnergyDensity[i] * Electrons.Electron_Velocity_m_s[i] * Electrons.Electric_Field_V_m[i];
             
             if ((i != 0) & (i != Simulation_Parameters.nCells-1)){
                 //WallPowerLoss[i] = 1d7 * Ae
             }
-            Electrons.Source_Energy[i] = OhmicHeating[i] - Electrons.EnergyDensity[i] * WallPowerLoss[i]; 
+            B[i] = OhmicHeating[i] - Electrons.EnergyDensity[i] * WallPowerLoss[i]; 
         }
 
         //calculate fluxes (setting up linear matrix)
@@ -221,10 +226,43 @@ namespace HypiC{
         For the heat flux, use upwinding for which cell's kappa to apply and then use a central difference scheme to finite
         difference the gradient in the energy density which adds a geometric factor. 
         */
-       
 
+        //loop over main body
+        for(size_t i=1; i<Simulation_Parameters.nCells - 1; ++i){
+            if (Electrons.Electron_Velocity_m_s[i] > 0){ 
+                //upwind from 0 to 1 and 1 to 2
+                diag_low[i-1] = (5/3) * Electrons.Electron_Velocity_m_s[i-1] + Electrons.Electron_Thermal_Conductivity[i-1] / Electrons.Grid_Step;
+                diag[i] = (5/3) * Electrons.Electron_Velocity_m_s[i] - (Electrons.Electron_Thermal_Conductivity[i-1] - Electrons.Electron_Thermal_Conductivity[i]) / Electrons.Grid_Step;
+                diag_up[i] = -Electrons.Electron_Thermal_Conductivity[i] / Electrons.Grid_Step;
+            } else{
+                //upwind from 1 to 0 and 2 to 1
+                diag_low[i-1] =  Electrons.Electron_Thermal_Conductivity[i] / Electrons.Grid_Step;
+                diag[i] = (5/3) * Electrons.Electron_Velocity_m_s[i] - (Electrons.Electron_Thermal_Conductivity[i] - Electrons.Electron_Thermal_Conductivity[i+1]) / Electrons.Grid_Step;
+                diag_up[i] = (5/3) * Electrons.Electron_Velocity_m_s[i+1] -Electrons.Electron_Thermal_Conductivity[i+1] / Electrons.Grid_Step;
+            }
 
-        //call matrix solver
+        }
+
+        //apply sheath boundary condition 
+        //neglect heat flux at left edge
+        if (Electrons.Electron_Velocity_m_s[0] > 0){ 
+            //upwind from 1 to 2
+            diag[0] = (5/3) * Electrons.Electron_Velocity_m_s[0] + Electrons.Electron_Thermal_Conductivity[0] / Electrons.Grid_Step;
+            diag_up[0] = -Electrons.Electron_Thermal_Conductivity[0] / Electrons.Grid_Step;
+        } else{
+            //upwind from 2 to 1
+            diag[0] = Electrons.Electron_Thermal_Conductivity[1] / Electrons.Grid_Step;
+            diag_up[0] = (5/3) * Electrons.Electron_Velocity_m_s[1] - Electrons.Electron_Thermal_Conductivity[1] / Electrons.Grid_Step;
+        }
+
+        //handle the left edge
+        T0 = (2/3) * Electrons.EnergyDensity[0] / Electrons.Plasma_Density_m3[0];
+        je_sheath = (Integrate_Discharge_Current(Electrons, Simulation_Parameters) / Simulation_Parameters.Channel_Area_m2) - Electrons.Ion_Current_Density[0];
+        //the back term (1-log) of this is the sheath potential 
+        diag[0] = (4/3) * je_sheath / (-1.602176634e-19 * Electrons.Plasma_Density_m3[0]) * (1 - log(std::min(1.0, je_sheath / (1.602176634e-19 * Electrons.Plasma_Density_m3[0] * sqrt(8 * 1.602176634e-19 * T0/ (M_PI * 9.10938356e-31)) / 4))));
+
+        //call matrix solver, might want to use Thomas https://www.quantstart.com/articles/Tridiagonal-Matrix-Algorithm-Thomas-Algorithm-in-C/
+
 
 
         //limit to a minimum temperature
