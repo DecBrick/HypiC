@@ -3,7 +3,7 @@
 #include "HypiCpp.hpp"
 
 
-void main(){
+int main(){
 
     //read input file, should be caled Input in the same folder as the executable 
     HypiC::Options_Object Input_Options = HypiC::Options_Object();
@@ -36,10 +36,10 @@ void main(){
     HypiC::Rate_Table_Object Ionization_Rates = HypiC::Rate_Table_Object();
     HypiC::Rate_Table_Object Loss_Rates = HypiC::Rate_Table_Object();
     //this assumes that the build directory is in the same folder as the HypiC directory, should enforce this.
-    std::string file_path = "../../HypiC/Reactions/Xe_Ionization_0_to_1.txt";
-    Ionization_Rates.Read_Table(file_path);
-    std::string file_path = "../../HypiC/Reactions/Xe_Loss.txt";
-    Loss_Rates.Read_Table(file_path);
+    std::string file_path1 = "../../HypiC/Reactions/Xe_Ionization_0_to_1.txt";
+    Ionization_Rates.Read_Table(file_path1);
+    std::string file_path2 = "../../HypiC/Reactions/Xe_Loss.txt";
+    Loss_Rates.Read_Table(file_path2);
 
     //main loop
     for(size_t i=0; i < Input_Options.nIterations; ++i){

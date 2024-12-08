@@ -43,30 +43,19 @@ endif()
 
 #add warnings?
 
+# Add the HypiC_SOURCES library
+add_subdirectory(src)
 
-# Source files
-set(HypiC_SOURCES
-"src/Particles_Object.cpp"
-"src/Electrons_Object.cpp"
-"src/Rate_Table.cpp"
-"src/Initialize.cpp"
-"src/Iteration.cpp"
-"src/Output.cpp"
-)
+# Add the executable
+add_executable(HypiC "${CMAKE_SOURCE_DIR}/src/HypiC.cpp")
 
-add_library(HypiC SHARED ${HypiC_SOURCES})
-
-target_include_directories(HypiC
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-)
+target_link_libraries(HypiC PUBLIC HypiC_Sources)
 
 #===============================================================================
 # Other directories
 #===============================================================================
 
 # Enable testing
-include(CTest)
-enable_testing()
-add_subdirectory(test)
+#include(CTest)
+#enable_testing()
+#add_subdirectory(test)
