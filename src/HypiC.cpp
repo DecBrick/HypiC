@@ -23,7 +23,7 @@ void main(){
     HypiC::Compute_Electric_Field(Electrons, Input_Options, Discharge_Current); //or whatever the function is
 
     //interpolate field back to particles
-    HypiC::Grid_to_Particles(Ions, Electrons);
+    HypiC::Grid_to_Particles(Neutrals, Ions, Electrons);
 
     //take back half step for ions (neutrals are unaffected by the field) 
     Ions.Velocity_Backstep(Input_Options.dt);
@@ -32,11 +32,14 @@ void main(){
     HypiC::Time_Sum_Object Results = HypiC::Time_Sum_Object();
     Results.Initialize_Time_Sum(Input_Options.nCells, Electrons);
     
-    //read the ionization rates. 
+    //read the ionization and loss rates. 
     HypiC::Rate_Table_Object Ionization_Rates = HypiC::Rate_Table_Object();
+    HypiC::Rate_Table_Object Loss_Rates = HypiC::Rate_Table_Object();
     //this assumes that the build directory is in the same folder as the HypiC directory, should enforce this.
     std::string file_path = "../../HypiC/Reactions/Xe_Ionization_0_to_1.txt";
     Ionization_Rates.Read_Table(file_path);
+    std::string file_path = "../../HypiC/Reactions/Xe_Loss.txt";
+    Loss_Rates.Read_Table(file_path);
 
     //main loop
     for(size_t i=0; i < Input_Options.nIterations; ++i){
@@ -50,7 +53,7 @@ void main(){
         HypiC::Update_Electrons(Electrons, Neutrals, Ions, Ionization_Rates, Input_Options);
 
         //interpolate
-        HypiC::Grid_to_Particles(Ions, Electrons);
+        HypiC::Grid_to_Particles(Neutrals, Ions, Electrons);
 
         //update time sum
         Results.Time_Sum(Electrons, Input_Options); 

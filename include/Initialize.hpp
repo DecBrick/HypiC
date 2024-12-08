@@ -35,6 +35,7 @@ namespace HypiC{
             double Initial_Cathode_Temperature_eV;
             double Initial_Min_Ion_Density;
             double Initial_Max_Ion_Density;
+            double Min_Electron_Temperature_eV;
 
 
             //construction/destruction methods

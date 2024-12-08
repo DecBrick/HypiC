@@ -113,7 +113,7 @@ namespace HypiC{
 
 
 
-    void Update_Electrons(HypiC::Electrons_Object Electrons, HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Rate_Table_Object Ionization_Rates, HypiC::Options_Object Simulation_Parameters){ //,double t){
+    void Update_Electrons(HypiC::Electrons_Object Electrons, HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Rate_Table_Object Ionization_Rates, HypiC::Rate_Table_Object Collision_Loss_Rates, HypiC::Options_Object Simulation_Parameters){ //,double t){
         for(size_t c=0; c<Simulation_Parameters.nCells; ++c){
             Electrons.Electron_Temperature_eV[c] = 2/3 * Electrons.EnergyDensity[c]/Electrons.Plasma_Density_m3[c];
             Electrons.Electron_Pressure[c] =  1.5 * Electrons.EnergyDensity[c] * Electrons.Electron_Temperature_eV[c];
@@ -176,14 +176,15 @@ namespace HypiC{
 
         Update_Thermal_Conductivity(Electrons,Simulation_Parameters);
 
-        //Update_Electron_Energy(Electrons,Simulation_Parameters);
+        Update_Electron_Energy(Electrons,Simulation_Parameters, Collision_Loss_Rates);
     }
 
-    void Update_Electron_Energy(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters){
+    void Update_Electron_Energy(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters, HypiC::Rate_Table_Object Loss_Rates){
         std::vector<double> diag(Simulation_Parameters.nCells,1);
         std::vector<double> diag_low(Simulation_Parameters.nCells-1,1);
         std::vector<double> diag_up(Simulation_Parameters.nCells-1,1);
         std::vector<double> B(Simulation_Parameters.nCells,1);
+        std::vector<double> Energy_new;
         double je_sheath;
         double T0;
 
@@ -204,14 +205,18 @@ namespace HypiC{
         //calculate source terms
         //there should be a timestep term in here too 
         std::vector<double> OhmicHeating(Simulation_Parameters.nCells,0);
+        std::vector<double> Collisional_Loss(Simulation_Parameters.nCells,0);
         std::vector<double> WallPowerLoss(Simulation_Parameters.nCells,0);
         for(size_t i=0; i<Simulation_Parameters.nCells-1; ++i){ //-1 is b/c we want to fix the Cathode cell using a dirichlet condition 
-            OhmicHeating[i] = Electrons.EnergyDensity[i] * Electrons.Electron_Velocity_m_s[i] * Electrons.Electric_Field_V_m[i];
-            
-            if ((i != 0) & (i != Simulation_Parameters.nCells-1)){
-                //WallPowerLoss[i] = 1d7 * Ae
+            OhmicHeating[i] = -1.602176634e-19 * Electrons.Plasma_Density_m3[i] * Electrons.Electron_Velocity_m_s[i] * Electrons.Electric_Field_V_m[i];
+            Collisional_Loss[i] = Electrons.Plasma_Density_m3[i] * Electrons.Neutral_Density_m3[i] * Loss_Rates.interpolate(Electrons.Electron_Temperature_eV[i]);
+
+            if (Electrons.Cell_Center[i] <= Simulation_Parameters.Channel_Length_m){
+                WallPowerLoss[i] = 7.5e6 * Electrons.Electron_Temperature_eV[i] * exp( - 40 / (3 *Electrons.Electron_Temperature_eV[i]));
+            } else{
+                WallPowerLoss[i] = 0;
             }
-            B[i] = OhmicHeating[i] - Electrons.EnergyDensity[i] * WallPowerLoss[i]; 
+            B[i] = OhmicHeating[i] - Electrons.EnergyDensity[i] * WallPowerLoss[i] - Collisional_Loss[i] + Simulation_Parameters.dt * Electrons.EnergyDensity[i]; 
         }
 
         //calculate fluxes (setting up linear matrix)
@@ -262,11 +267,13 @@ namespace HypiC{
         diag[0] = (4/3) * je_sheath / (-1.602176634e-19 * Electrons.Plasma_Density_m3[0]) * (1 - log(std::min(1.0, je_sheath / (1.602176634e-19 * Electrons.Plasma_Density_m3[0] * sqrt(8 * 1.602176634e-19 * T0/ (M_PI * 9.10938356e-31)) / 4))));
 
         //call matrix solver, might want to use Thomas https://www.quantstart.com/articles/Tridiagonal-Matrix-Algorithm-Thomas-Algorithm-in-C/
+        Energy_new = Thomas_Algorithm(diag_low, diag, diag_up, B);
 
 
-
-        //limit to a minimum temperature
-
+        //limit to a minimum temperature and assign
+        for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
+            Electrons.EnergyDensity[i] = std::max(Energy_new[i], 1.5 * Electrons.Plasma_Density_m3[i] * Simulation_Parameters.Min_Electron_Temperature_eV);
+        }
     }
 
     void Solve_Potential(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters){
@@ -361,6 +368,32 @@ namespace HypiC{
             double t = (x-x1)/(x2-x1);
             return t * (y2-y1) + y1;
         }
+    }
+
+    std::vector<double> Thomas_Algorithm(std::vector<double> lower_diagonal, std::vector<double> diagonal, std::vector<double> upper_diagonal, std::vector<double> b){
+        //I pulled the description from Wiki, might need a better source
+        size_t n;
+        double w;
+        //pull sizing information
+        n = diagonal.size();
+        
+        //initialize result
+        std::vector<double> x(n, 0.0);
+
+        //enter main loop 
+        for (size_t i=1; i < n; i++){
+            w = lower_diagonal[i-1] / diagonal[i-1];
+            diagonal[i] -= w * upper_diagonal[i-1];
+            b[i] -= w * b[i-1];
+        }
+
+        //back substitution 
+        x[n-1] = b[n-1] / diagonal[n-1];
+        for (size_t i = n-2; i >= 0; i--){
+            x[i] = (b[i] - upper_diagonal[i] * x[i+1]) / diagonal[i];
+        }
+
+        return x;
     }
 
     //double Freq_Electron_Ion(double EnergyDensity, double ElectronTemp, double IonZ){

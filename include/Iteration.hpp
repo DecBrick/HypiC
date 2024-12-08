@@ -5,7 +5,7 @@ namespace HypiC{
 
     void Update_Heavy_Species(HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Rate_Table_Object Ionization_Rates, HypiC::Options_Object Simulation_Parameters);
 
-    void Update_Electrons(HypiC::Electrons_Object Electrons, HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Rate_Table_Object Ionization_Rates, HypiC::Options_Object Simulation_Parameters);//, double t);
+    void Update_Electrons(HypiC::Electrons_Object Electrons, HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Rate_Table_Object Ionization_Rates, HypiC::Rate_Table_Object Collision_Loss_Rates, HypiC::Options_Object Simulation_Parameters);//, double t);
 
     //double Freq_Electron_Ion(double EnergyDensity, double ElectronTemp, double IonZ);
 
@@ -28,4 +28,8 @@ namespace HypiC{
     void Compute_Pressure_Gradient(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters);
 
     void Update_Thermal_Conductivity(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters);
+
+    void Update_Electron_Energy(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters, HypiC::Rate_Table_Object Loss_Rates);
+
+    std::vector<double> Thomas_Algorithm(std::vector<double> lower_diagonal, std::vector<double> diagonal, std::vector<double> upper_diagonal, std::vector<double> b);
 }
