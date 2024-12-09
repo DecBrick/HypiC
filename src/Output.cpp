@@ -28,7 +28,7 @@ namespace HypiC{
     //might have to add some averaging here as the interpolation step might not consider temperature
     void Time_Sum_Object::Time_Sum(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters){
         //increment time
-        time += Simulation_Parameters.dt;
+        this->time += Simulation_Parameters.dt;
         //sum quantities
         for (size_t i=0; i<Simulation_Parameters.nCells; ++i){
             this->Neutral_Density_m3[i] += Electrons.Neutral_Density_m3[i];

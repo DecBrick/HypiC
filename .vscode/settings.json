@@ -48,6 +48,9 @@
         "fstream": "cpp",
         "iomanip": "cpp",
         "ctime": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "cstdarg": "cpp",
+        "list": "cpp",
+        "cinttypes": "cpp"
     }
 }

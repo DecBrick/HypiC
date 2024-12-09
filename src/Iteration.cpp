@@ -92,14 +92,14 @@ namespace HypiC{
         
         //enforce ion boundary conditions
         for (size_t i=n_remove; i>0; --i){
-            Ions.Remove_Particle(Remove_These[i]);//remove the particle
+            Ions.Remove_Particle(Remove_These[i-1]);//remove the particle
             Ions._nParticles -= 1;//update the number of particles
             Remove_These.pop_back();//remove from the remove list
         }
         for (size_t i=n_reflect; i>0; --i){
             //add to the neutrals with position = 0 and reflected velocity
             //resample from Maxwellian?
-            current_index = Reflect_These[i];
+            current_index = Reflect_These[i-1];
             Neutrals.Add_Particle(0, -1 * Ions.get_Position(current_index), Ions.get_Weight(current_index),
             Ions.get_ElectricField(current_index), Ions.get_ElectronDensity(current_index), Ions.get_ElectronTemperature(current_index));
             Neutrals._nParticles += 1; //add to neutrals
@@ -117,7 +117,7 @@ namespace HypiC{
         
         //first update the electron mobility
         Update_Mobility(Electrons, Simulation_Parameters, Ionization_Rates);
-        
+
         //Discharge Voltage
         double Discharge_Current = Integrate_Discharge_Current(Electrons, Simulation_Parameters);
 
@@ -133,10 +133,11 @@ namespace HypiC{
         Compute_Electric_Field(Electrons,Simulation_Parameters, Discharge_Current);
 
         Solve_Potential(Electrons,Simulation_Parameters);
-
+        
         Update_Thermal_Conductivity(Electrons,Simulation_Parameters);
 
         Update_Electron_Energy(Electrons,Simulation_Parameters, Collision_Loss_Rates);
+        std::cout << "check\n";
     }
 
     void Update_Electron_Energy(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters, HypiC::Rate_Table_Object Loss_Rates){
@@ -170,7 +171,7 @@ namespace HypiC{
         for(size_t i=0; i<Simulation_Parameters.nCells-1; ++i){ //-1 is b/c we want to fix the Cathode cell using a dirichlet condition 
             OhmicHeating[i] = -1.602176634e-19 * Electrons.Plasma_Density_m3[i] * Electrons.Electron_Velocity_m_s[i] * Electrons.Electric_Field_V_m[i];
             Collisional_Loss[i] = Electrons.Plasma_Density_m3[i] * Electrons.Neutral_Density_m3[i] * Loss_Rates.interpolate(Electrons.Electron_Temperature_eV[i]);
-
+            
             if (Electrons.Cell_Center[i] <= Simulation_Parameters.Channel_Length_m){
                 WallPowerLoss[i] = 7.5e6 * Electrons.Electron_Temperature_eV[i] * exp( - 40 / (3 *Electrons.Electron_Temperature_eV[i]));
             } else{
@@ -229,7 +230,7 @@ namespace HypiC{
         //call matrix solver, might want to use Thomas https://www.quantstart.com/articles/Tridiagonal-Matrix-Algorithm-Thomas-Algorithm-in-C/
         Energy_new = Thomas_Algorithm(diag_low, diag, diag_up, B);
 
-
+        std::cout << "check\n";
         //limit to a minimum temperature and assign
         for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
             Electrons.EnergyDensity[i] = std::max(Energy_new[i], 1.5 * Electrons.Plasma_Density_m3[i] * Simulation_Parameters.Min_Electron_Temperature_eV);
@@ -241,7 +242,7 @@ namespace HypiC{
 
         for(size_t i=1; i<Simulation_Parameters.nCells; ++i){
             double dx = Electrons.Cell_Center[i] - Electrons.Cell_Center[i-1];
-            Electrons.Potential[i] = Electrons.Potential[i-1] + 0.5 * dx * (Electrons.Electric_Field_V_m[i] + Electrons.Electric_Field_V_m[i+1]);
+            Electrons.Potential[i] = Electrons.Potential[i-1] + 0.5 * dx * (Electrons.Electric_Field_V_m[i] + Electrons.Electric_Field_V_m[i-1]);
         }
     }
 
@@ -394,10 +395,11 @@ namespace HypiC{
 
         //back substitution 
         x[n-1] = b[n-1] / diagonal[n-1];
-        for (size_t i = n-2; i >= 0; i--){
+        int jj = n-2;
+        for (size_t i = n-2; i-- > 0; ){
             x[i] = (b[i] - upper_diagonal[i] * x[i+1]) / diagonal[i];
         }
-
+        
         return x;
     }
 

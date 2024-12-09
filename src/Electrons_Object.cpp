@@ -28,7 +28,7 @@ namespace HypiC
         this->Cell_Center.push_back(cell_center);
         this->Plasma_Density_m3.push_back(electron_density);
         this->Electron_Temperature_eV.push_back(electron_temp);
-        this->EnergyDensity.push_back(1.5 * electron_density * electron_temp);
+        this->Electron_Kinetic_Energy.push_back(1.5 * electron_density * electron_temp);
         this->Electron_Pressure.push_back(1.602176634e-19 * electron_density * electron_temp);
         this->Magnetic_Field_G.push_back(magnetic_field);
         this->EnergyDensity.push_back(energy_density);
@@ -47,7 +47,12 @@ namespace HypiC
         this->Ionization_Rate.push_back(0.0);
         this->Electron_Mobility.push_back(0.0);
         this->Electron_Pressure_Gradient.push_back(0.0);
-
+        this->Potential.push_back(0.0);
+        this->Electron_Thermal_Conductivity.push_back(0.0);
+        this->Neutral_Velocity_m_s.push_back(0.0);
+        this->Neutral_Temperature_K.push_back(0.0);
+        this->Ion_Velocity_m_s.push_back(0.0);
+        this->Ion_Temperature_eV.push_back(0.0);
 
 
         //increase n particles count

@@ -72,7 +72,7 @@ int main(){
         HypiC::Grid_to_Particles(Neutrals, Ions, Electrons);
 
         //update time sum
-        Results.Time_Sum(Electrons, Input_Options); 
+        Results.Time_Sum(Electrons, Input_Options);
 
         //periodic output
         if (i % Input_Options.Output_Interval == 0){
