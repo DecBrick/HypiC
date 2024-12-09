@@ -137,7 +137,6 @@ namespace HypiC{
         Update_Thermal_Conductivity(Electrons,Simulation_Parameters);
 
         Update_Electron_Energy(Electrons,Simulation_Parameters, Collision_Loss_Rates);
-        std::cout << "check\n";
     }
 
     void Update_Electron_Energy(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters, HypiC::Rate_Table_Object Loss_Rates){
@@ -230,7 +229,6 @@ namespace HypiC{
         //call matrix solver, might want to use Thomas https://www.quantstart.com/articles/Tridiagonal-Matrix-Algorithm-Thomas-Algorithm-in-C/
         Energy_new = Thomas_Algorithm(diag_low, diag, diag_up, B);
 
-        std::cout << "check\n";
         //limit to a minimum temperature and assign
         for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
             Electrons.EnergyDensity[i] = std::max(Energy_new[i], 1.5 * Electrons.Plasma_Density_m3[i] * Simulation_Parameters.Min_Electron_Temperature_eV);
