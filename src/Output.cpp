@@ -1,6 +1,7 @@
 #include "HypiCpp.hpp"
 #include <fstream>
 #include <iomanip>
+#include <iostream>
 
 namespace HypiC{
     void Time_Sum_Object::Initialize_Time_Sum(size_t nCells, HypiC::Electrons_Object Grid){
@@ -78,5 +79,7 @@ namespace HypiC{
 
         //close the file
         f.close();
+
+        std::cout << "Output File Written\n";
     };
 }

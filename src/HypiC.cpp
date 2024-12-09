@@ -32,7 +32,6 @@ int main(){
     HypiC::Electrons_Object Electrons = HypiC::Initialize_Electrons(Input_Options);
 
     std::cout << "Objects\n";
-    std::cout << Electrons.Electron_Temperature_eV[0] << "\n";
     //initial interpolations 
     //interpolate particle densities to electrons
     HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
@@ -83,5 +82,6 @@ int main(){
     }
 
     //final output
+    std::cout << "Simulation Complete\n";
     Results.Write_Output("Output.csv", Input_Options.nCells);
 }
