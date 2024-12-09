@@ -1,5 +1,5 @@
 #include "HypiCpp.hpp"
-
+#include <iostream>
 namespace HypiC{
     void Update_Heavy_Species(HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Rate_Table_Object Ionization_rates, HypiC::Options_Object Simulation_Parameters){
         std::vector<size_t> Remove_These;
@@ -114,49 +114,9 @@ namespace HypiC{
 
 
     void Update_Electrons(HypiC::Electrons_Object Electrons, HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Rate_Table_Object Ionization_Rates, HypiC::Rate_Table_Object Collision_Loss_Rates, HypiC::Options_Object Simulation_Parameters){ //,double t){
-        for(size_t c=0; c<Simulation_Parameters.nCells; ++c){
-            Electrons.Electron_Temperature_eV[c] = 2/3 * Electrons.EnergyDensity[c]/Electrons.Plasma_Density_m3[c];
-            Electrons.Electron_Pressure[c] =  1.5 * Electrons.EnergyDensity[c] * Electrons.Electron_Temperature_eV[c];
-
-            //Update Electron-Ion Collisions - NOT NECESSARY FOR LANDMARK AAAAA
-            //Electrons.Freq_Elec_Ion[c] = Freq_Electron_Ion(Electrons.EnergyDensity[c],Electrons.Electron_Temperature_eV[c],Electrons.Ion_Z[c]);
-
-            //Update OTHER
-            //This seems to be super complicated?? But Landmark seems to be constant 2.5e-13 rate?
-            Electrons.Freq_Elec_Neutral[c] = 2.5e-13 * Electrons.Neutral_Density_m3[c];
-            
-            //Electrons.Freq_Classical[c] = Electrons.Freq_Elec_Neutral[c] + Electrons.Freq_Elec_Ion[c];
-            Electrons.Freq_Classical[c] = Electrons.Freq_Elec_Neutral[c];
-
-            //Seems like Radial Loss Freq is a constant 1e7 for Landmark?
-          
-            Electrons.Freq_Electron_Wall_Collision[c] = 1e7 * Linear_Transition(Electrons.Cell_Center[c],Simulation_Parameters.Channel_Length_m, 0.2*Simulation_Parameters.Channel_Length_m,1,0);
-
-            //update the ionization rate
-            Electrons.Ionization_Rate[c] = Ionization_Rates.interpolate(Electrons.Electron_Temperature_eV[c]);
-        }
-            //Anomalous transport?
-        for(size_t c1=0; c1<Simulation_Parameters.nCells; ++c1){
-
-            double Elec_Cycl_Freq = 1.602176634e-19 * Electrons.Magnetic_Field_G[c1] / 9.10938356e-31;
-
-            //Might need to change this to 0.1, 1?
-            double Beta = Linear_Transition(Electrons.Cell_Center[c1],Simulation_Parameters.Channel_Length_m, 0.2*Simulation_Parameters.Channel_Length_m, 1/160,1/16);
-
-            Electrons.Freq_Anomalous_Collision[c1] = Elec_Cycl_Freq * Beta;
-
-        }
-            
-        //Smooth? - Not necessary
-        //std::vector<double> Freq_Anomalous_Copy = Electrons.Freq_Anomalous_Collision;
-        //Smooth(Electrons.Freq_Anomalous_Collision, Freq_Anomalous_Copy, Iterations)
-        for(size_t c1=0; c1<Simulation_Parameters.nCells; ++c1){
-            Electrons.Freq_Total_Electron_Collision[c1] = Electrons.Freq_Electron_Wall_Collision[c1] + Electrons.Freq_Anomalous_Collision[c1] + Electrons.Freq_Classical[c1];
-
-            double Omega =  1.602176634e-19 * Electrons.Magnetic_Field_G[c1] / (9.10938356e-31 *Electrons.Freq_Total_Electron_Collision[c1]);
-            Electrons.Electron_Mobility[c1] = 1.602176634e-19 / (9.10938356e-31 * Electrons.Freq_Total_Electron_Collision[c1] * (1+pow(Omega,2)));
         
-        }
+        //first update the electron mobility
+        Update_Mobility(Electrons, Simulation_Parameters, Ionization_Rates);
         
         //Discharge Voltage
         double Discharge_Current = Integrate_Discharge_Current(Electrons, Simulation_Parameters);
@@ -236,14 +196,14 @@ namespace HypiC{
         for(size_t i=1; i<Simulation_Parameters.nCells - 1; ++i){
             if (Electrons.Electron_Velocity_m_s[i] > 0){ 
                 //upwind from 0 to 1 and 1 to 2
-                diag_low[i-1] = (5/3) * Electrons.Electron_Velocity_m_s[i-1] + Electrons.Electron_Thermal_Conductivity[i-1] / Electrons.Grid_Step;
-                diag[i] = (5/3) * Electrons.Electron_Velocity_m_s[i] - (Electrons.Electron_Thermal_Conductivity[i-1] - Electrons.Electron_Thermal_Conductivity[i]) / Electrons.Grid_Step;
+                diag_low[i-1] = (5.0/3.0) * Electrons.Electron_Velocity_m_s[i-1] + Electrons.Electron_Thermal_Conductivity[i-1] / Electrons.Grid_Step;
+                diag[i] = (5.0/3.0) * Electrons.Electron_Velocity_m_s[i] - (Electrons.Electron_Thermal_Conductivity[i-1] - Electrons.Electron_Thermal_Conductivity[i]) / Electrons.Grid_Step;
                 diag_up[i] = -Electrons.Electron_Thermal_Conductivity[i] / Electrons.Grid_Step;
             } else{
                 //upwind from 1 to 0 and 2 to 1
                 diag_low[i-1] =  Electrons.Electron_Thermal_Conductivity[i] / Electrons.Grid_Step;
-                diag[i] = (5/3) * Electrons.Electron_Velocity_m_s[i] - (Electrons.Electron_Thermal_Conductivity[i] - Electrons.Electron_Thermal_Conductivity[i+1]) / Electrons.Grid_Step;
-                diag_up[i] = (5/3) * Electrons.Electron_Velocity_m_s[i+1] -Electrons.Electron_Thermal_Conductivity[i+1] / Electrons.Grid_Step;
+                diag[i] = (5.0/3.0) * Electrons.Electron_Velocity_m_s[i] - (Electrons.Electron_Thermal_Conductivity[i] - Electrons.Electron_Thermal_Conductivity[i+1]) / Electrons.Grid_Step;
+                diag_up[i] = (5.0/3.0) * Electrons.Electron_Velocity_m_s[i+1] -Electrons.Electron_Thermal_Conductivity[i+1] / Electrons.Grid_Step;
             }
 
         }
@@ -252,19 +212,19 @@ namespace HypiC{
         //neglect heat flux at left edge
         if (Electrons.Electron_Velocity_m_s[0] > 0){ 
             //upwind from 1 to 2
-            diag[0] = (5/3) * Electrons.Electron_Velocity_m_s[0] + Electrons.Electron_Thermal_Conductivity[0] / Electrons.Grid_Step;
+            diag[0] = (5.0/3.0) * Electrons.Electron_Velocity_m_s[0] + Electrons.Electron_Thermal_Conductivity[0] / Electrons.Grid_Step;
             diag_up[0] = -Electrons.Electron_Thermal_Conductivity[0] / Electrons.Grid_Step;
         } else{
             //upwind from 2 to 1
             diag[0] = Electrons.Electron_Thermal_Conductivity[1] / Electrons.Grid_Step;
-            diag_up[0] = (5/3) * Electrons.Electron_Velocity_m_s[1] - Electrons.Electron_Thermal_Conductivity[1] / Electrons.Grid_Step;
+            diag_up[0] = (5.0/3.0) * Electrons.Electron_Velocity_m_s[1] - Electrons.Electron_Thermal_Conductivity[1] / Electrons.Grid_Step;
         }
 
         //handle the left edge
-        T0 = (2/3) * Electrons.EnergyDensity[0] / Electrons.Plasma_Density_m3[0];
+        T0 = (2.0/3.0) * Electrons.EnergyDensity[0] / Electrons.Plasma_Density_m3[0];
         je_sheath = (Integrate_Discharge_Current(Electrons, Simulation_Parameters) / Simulation_Parameters.Channel_Area_m2) - Electrons.Ion_Current_Density[0];
         //the back term (1-log) of this is the sheath potential 
-        diag[0] = (4/3) * je_sheath / (-1.602176634e-19 * Electrons.Plasma_Density_m3[0]) * (1 - log(std::min(1.0, je_sheath / (1.602176634e-19 * Electrons.Plasma_Density_m3[0] * sqrt(8 * 1.602176634e-19 * T0/ (M_PI * 9.10938356e-31)) / 4))));
+        diag[0] = (4.0/3.0) * je_sheath / (-1.602176634e-19 * Electrons.Plasma_Density_m3[0]) * (1.0 - log(std::min(1.0, je_sheath / (1.602176634e-19 * Electrons.Plasma_Density_m3[0] * sqrt(8 * 1.602176634e-19 * T0/ (M_PI * 9.10938356e-31)) / 4))));
 
         //call matrix solver, might want to use Thomas https://www.quantstart.com/articles/Tridiagonal-Matrix-Algorithm-Thomas-Algorithm-in-C/
         Energy_new = Thomas_Algorithm(diag_low, diag, diag_up, B);
@@ -293,6 +253,7 @@ namespace HypiC{
     }
 
     void Compute_Pressure_Gradient(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters){
+        
         Electrons.Electron_Pressure_Gradient[0] = Forward_Difference(Electrons.Electron_Pressure[0],Electrons.Electron_Pressure[1],Electrons.Electron_Pressure[2],Electrons.Cell_Center[0],Electrons.Cell_Center[1],Electrons.Cell_Center[2]);
         for(size_t i=1; i<Simulation_Parameters.nCells-1; ++i){
             Electrons.Electron_Pressure_Gradient[i] = Central_Difference(Electrons.Electron_Pressure[i-1],Electrons.Electron_Pressure[i],Electrons.Electron_Pressure[i+1],Electrons.Cell_Center[i-1],Electrons.Cell_Center[i],Electrons.Cell_Center[i+1]);
@@ -303,7 +264,51 @@ namespace HypiC{
 
     void Update_Thermal_Conductivity(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters){
         for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
-            Electrons.Electron_Thermal_Conductivity[i] = (10 / (9 * 1.602176634e-19)) * Electrons.Electron_Mobility[i] * Electrons.Plasma_Density_m3[i] * Electrons.EnergyDensity[i];
+            Electrons.Electron_Thermal_Conductivity[i] = (10.0 / (9.0 * 1.602176634e-19)) * Electrons.Electron_Mobility[i] * Electrons.Plasma_Density_m3[i] * Electrons.EnergyDensity[i];
+        }
+    }
+
+    void Update_Mobility(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters, HypiC::Rate_Table_Object Ionization_Rates){
+        double Elec_Cycl_Freq;
+        double Beta;
+        double Omega;
+        
+        for(size_t c=0; c<Electrons._nElectrons; ++c){
+            Electrons.Electron_Temperature_eV[c] = (2.0/3.0) * Electrons.EnergyDensity[c] /Electrons.Plasma_Density_m3[c];
+            //P = n * e * T
+            Electrons.Electron_Pressure[c] =  (2.0/3.0) * 1.602176634e-19 * Electrons.EnergyDensity[c];
+
+            //Update Electron-Ion Collisions - NOT NECESSARY FOR LANDMARK AAAAA
+            //Electrons.Freq_Elec_Ion[c] = Freq_Electron_Ion(Electrons.EnergyDensity[c],Electrons.Electron_Temperature_eV[c],Electrons.Ion_Z[c]);
+            //Update OTHER
+            //This seems to be super complicated?? But Landmark seems to be constant 2.5e-13 rate?
+            Electrons.Freq_Elec_Neutral[c] = 2.5e-13 * Electrons.Neutral_Density_m3[c];
+            
+            //Electrons.Freq_Classical[c] = Electrons.Freq_Elec_Neutral[c] + Electrons.Freq_Elec_Ion[c];
+            Electrons.Freq_Classical[c] = Electrons.Freq_Elec_Neutral[c];
+
+            //Seems like Radial Loss Freq is a constant 1e7 for Landmark?
+            Electrons.Freq_Electron_Wall_Collision[c] = 1e7 * Linear_Transition(Electrons.Cell_Center[c],Simulation_Parameters.Channel_Length_m, 0.2*Simulation_Parameters.Channel_Length_m,1,0);
+            //update the ionization rate
+            Electrons.Ionization_Rate[c] = Ionization_Rates.interpolate(Electrons.Electron_Temperature_eV[c]);
+            //update the anomalous frequency 
+            Elec_Cycl_Freq = 1.602176634e-19 * Electrons.Magnetic_Field_G[c] / 9.10938356e-31;
+
+            //Might need to change this to 0.1, 1?
+            if (Electrons.Cell_Center[c] <= Simulation_Parameters.Channel_Length_m){
+               Beta = 0.1 / 16.0; 
+            }else{
+               Beta = 1.0 / 16.0;
+            }
+
+            Electrons.Freq_Anomalous_Collision[c] = Elec_Cycl_Freq * Beta;
+
+
+            //update total collision frequency
+            Electrons.Freq_Total_Electron_Collision[c] = Electrons.Freq_Electron_Wall_Collision[c] + Electrons.Freq_Anomalous_Collision[c] + Electrons.Freq_Classical[c];
+
+            Omega =  1.602176634e-19 * Electrons.Magnetic_Field_G[c] / (9.10938356e-31 *Electrons.Freq_Total_Electron_Collision[c]);
+            Electrons.Electron_Mobility[c] = 1.602176634e-19 / (9.10938356e-31 * Electrons.Freq_Total_Electron_Collision[c] * (1+pow(Omega,2)));
         }
     }
 

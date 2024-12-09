@@ -29,6 +29,8 @@ namespace HypiC{
 
     void Update_Thermal_Conductivity(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters);
 
+    void Update_Mobility(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters, HypiC::Rate_Table_Object Ionization_Rates);
+
     void Update_Electron_Energy(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters, HypiC::Rate_Table_Object Loss_Rates);
 
     std::vector<double> Thomas_Algorithm(std::vector<double> lower_diagonal, std::vector<double> diagonal, std::vector<double> upper_diagonal, std::vector<double> b);
