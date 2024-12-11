@@ -119,7 +119,7 @@ namespace HypiC{
         Electrons.Update_Mobility(Simulation_Parameters, Ionization_Rates);
 
         //then compute pressure gradient
-        Compute_Pressure_Gradient(Electrons,Simulation_Parameters);
+        Electrons.Update_Pressure_Gradient(Simulation_Parameters);
 
         //Discharge Voltage
         double Discharge_Current = Integrate_Discharge_Current(Electrons, Simulation_Parameters);
@@ -228,7 +228,7 @@ namespace HypiC{
         diag[0] = (4.0/3.0) * je_sheath / (-1.602176634e-19 * Electrons.Plasma_Density_m3[0]) * (1.0 - log(std::min(1.0, je_sheath / (1.602176634e-19 * Electrons.Plasma_Density_m3[0] * sqrt(8 * 1.602176634e-19 * T0/ (M_PI * 9.10938356e-31)) / 4))));
 
         //call matrix solver, might want to use Thomas https://www.quantstart.com/articles/Tridiagonal-Matrix-Algorithm-Thomas-Algorithm-in-C/
-        Energy_new = Thomas_Algorithm(diag_low, diag, diag_up, B);
+        Energy_new = HypiC::Thomas_Algorithm(diag_low, diag, diag_up, B);
 
         //limit to a minimum temperature and assign
         for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
@@ -252,49 +252,12 @@ namespace HypiC{
         }
     }
 
-    void Compute_Pressure_Gradient(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters){
-        
-        Electrons.Electron_Pressure_Gradient[0] = Forward_Difference(Electrons.Electron_Pressure[0],Electrons.Electron_Pressure[1],Electrons.Electron_Pressure[2],Electrons.Cell_Center[0],Electrons.Cell_Center[1],Electrons.Cell_Center[2]);
-        for(size_t i=1; i<Simulation_Parameters.nCells-1; ++i){
-            Electrons.Electron_Pressure_Gradient[i] = Central_Difference(Electrons.Electron_Pressure[i-1],Electrons.Electron_Pressure[i],Electrons.Electron_Pressure[i+1],Electrons.Cell_Center[i-1],Electrons.Cell_Center[i],Electrons.Cell_Center[i+1]);
-        }
-        size_t end = Electrons.Electron_Pressure_Gradient.size() - 1;
-        Electrons.Electron_Pressure_Gradient[end] = Backward_Difference(Electrons.Electron_Pressure[end-2],Electrons.Electron_Pressure[end-1],Electrons.Electron_Pressure[end],Electrons.Cell_Center[end-2],Electrons.Cell_Center[end-1],Electrons.Cell_Center[end]);
-    }
-
     void Update_Thermal_Conductivity(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters){
         for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
             Electrons.Electron_Thermal_Conductivity[i] = (10.0 / (9.0 * 1.602176634e-19)) * Electrons.Electron_Mobility[i] * Electrons.Plasma_Density_m3[i] * Electrons.EnergyDensity[i];
         }
     }
 
-    double Forward_Difference(double f0, double f1, double f2, double x0, double x1, double x2){
-        double h1 = x1 - x0;
-        double h2 = x2 - x1;
-        double c0 = -(2*h1+h2)/h1/(h1+h2);
-        double c1 = (h1+h2)/(h1*h2);
-        double c2 = -h1/h2/(h1+h2);
-        return c0 * f0 + c1 * f1 + c2 * f2;
-    }
-
-    double Central_Difference(double f0, double f1, double f2, double x0, double x1, double x2){
-        double h1 = x1 - x0;
-        double h2 = x2 - x1;
-        double c0 = -h2/h1/(h1+h2);
-        double c1 = -(h1+h2)/(h1*h2);
-        double c2 = h1/h2/(h1+h2);
-        return c0 * f0 + c1 * f1 + c2 * f2;
-    }
-
-    double Backward_Difference(double f0, double f1, double f2, double x0, double x1, double x2){
-        double h1 = x1 - x0;
-        double h2 = x2 - x1;
-        double c0 = h2/h1/(h1+h2);
-        double c1 = -(h1+h2)/(h1*h2);
-        double c2 = (h1+2*h2)/h2/(h1+h2);
-
-        return c0 * f0 + c1 * f1 + c2 * f2;
-    }
 
     double Integrate_Discharge_Current(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters){
         double int1 = 0;
@@ -340,47 +303,7 @@ namespace HypiC{
         double Discharge_Current = (Simulation_Parameters.Discharge_Voltage_V + int1)/int2;
         return Discharge_Current;
     }
-
-    double Linear_Transition(double x, double cutoff, double L, double y1, double y2){
-        double x1 = cutoff - L/2;
-        double x2 = cutoff + L/2;
-        if (x < x1){
-            return y1;
-        } else if (x > x2){
-            return y2;
-        } else {
-            double t = (x-x1)/(x2-x1);
-            return t * (y2-y1) + y1;
-        }
-    }
-
-    std::vector<double> Thomas_Algorithm(std::vector<double> lower_diagonal, std::vector<double> diagonal, std::vector<double> upper_diagonal, std::vector<double> b){
-        //I pulled the description from Wiki, might need a better source
-        size_t n;
-        double w;
-        //pull sizing information
-        n = diagonal.size();
-        
-        //initialize result
-        std::vector<double> x(n, 0.0);
-
-        //enter main loop 
-        for (size_t i=1; i < n; i++){
-            w = lower_diagonal[i-1] / diagonal[i-1];
-            diagonal[i] -= w * upper_diagonal[i-1];
-            b[i] -= w * b[i-1];
-        }
-
-        //back substitution 
-        x[n-1] = b[n-1] / diagonal[n-1];
-        int jj = n-2;
-        for (size_t i = n-2; i-- > 0; ){
-            x[i] = (b[i] - upper_diagonal[i] * x[i+1]) / diagonal[i];
-        }
-        
-        return x;
-    }
-
+    
     //double Freq_Electron_Ion(double EnergyDensity, double ElectronTemp, double IonZ){
     //    return 2.9e-12 * pow(IonZ,2) * EnergyDensity * Coulomb_Logarithm(EnergyDensity, ElectronTemp, IonZ) / sqrt(pow(ElectronTemp,3));
     //}

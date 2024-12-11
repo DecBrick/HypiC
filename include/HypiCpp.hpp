@@ -11,6 +11,7 @@
 #include "Iteration.hpp"
 #include "Input.hpp"
 #include "Output.hpp"
+#include "math.hpp"
 #include "Interpolate.hpp"
 
 #endif // _HypiC_

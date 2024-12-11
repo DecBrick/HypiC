@@ -7,6 +7,7 @@
 #include <vector>
 #include "Rate_Table.hpp"
 #include "Input.hpp"
+#include "math.hpp"
 
 namespace HypiC{
     class Electrons_Object{
@@ -59,5 +60,7 @@ namespace HypiC{
             double Get_ElectricField(size_t index);
 
             void Update_Mobility(HypiC::Options_Object Simulation_Parameters, HypiC::Rate_Table_Object Ionization_Rates);
+
+            void Update_Pressure_Gradient(HypiC::Options_Object Simulation_Parameters);
     };
 }

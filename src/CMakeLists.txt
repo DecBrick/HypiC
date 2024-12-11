@@ -7,6 +7,8 @@ set(SOURCES
 "Output.cpp"
 "Particles_Object.cpp"
 "Rate_Table.cpp"
+"math.cpp"
+"Input.cpp"
 )
 
 add_library(HypiC_Sources SHARED ${SOURCES})

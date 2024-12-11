@@ -1,5 +1,6 @@
 #pragma once
 #include "Particles_Object.hpp"
+#include "math.hpp"
 
 namespace HypiC{
 
@@ -13,13 +14,6 @@ namespace HypiC{
 
     void Solve_Potential(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters);
 
-    double Forward_Difference(double f0, double f1, double f2, double x0, double x1, double x2);
-
-    double Central_Difference(double f0, double f1, double f2, double x0, double x1, double x2);
-
-    double Backward_Difference(double f0, double f1, double f2, double x0, double x1, double x2);
-
-    double Linear_Transition(double x, double cutoff, double L, double y1, double y2);
 
     void Compute_Electric_Field(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters, double Discharge_Current);
 
@@ -29,9 +23,5 @@ namespace HypiC{
 
     void Update_Thermal_Conductivity(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters);
 
-    void Update_Mobility(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters, HypiC::Rate_Table_Object Ionization_Rates);
-
     void Update_Electron_Energy(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters, HypiC::Rate_Table_Object Loss_Rates);
-
-    std::vector<double> Thomas_Algorithm(std::vector<double> lower_diagonal, std::vector<double> diagonal, std::vector<double> upper_diagonal, std::vector<double> b);
 }
