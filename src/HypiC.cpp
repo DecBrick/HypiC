@@ -38,8 +38,8 @@ int main(){
     //interpolate particle densities to electrons
     HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
 
-    //solve electric field for electrons, add ji to the electrons object 
-    HypiC::Update_Mobility(Electrons, Input_Options, Ionization_Rates);
+    //solve electric field for electrons, add ji to the electrons object
+    Electrons.Update_Mobility(Input_Options, Ionization_Rates);
     HypiC::Compute_Pressure_Gradient(Electrons, Input_Options);
     double Discharge_Current = HypiC::Integrate_Discharge_Current(Electrons, Input_Options);
     HypiC::Compute_Electric_Field(Electrons, Input_Options, Discharge_Current); //or whatever the function is

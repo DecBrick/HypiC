@@ -116,7 +116,7 @@ namespace HypiC{
     void Update_Electrons(HypiC::Electrons_Object Electrons, HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Rate_Table_Object Ionization_Rates, HypiC::Rate_Table_Object Collision_Loss_Rates, HypiC::Options_Object Simulation_Parameters){ //,double t){
         
         //first update the electron mobility and Temperature
-        Update_Mobility(Electrons, Simulation_Parameters, Ionization_Rates);
+        Electrons.Update_Mobility(Simulation_Parameters, Ionization_Rates);
 
         //then compute pressure gradient
         Compute_Pressure_Gradient(Electrons,Simulation_Parameters);
@@ -268,51 +268,6 @@ namespace HypiC{
         }
     }
 
-    void Update_Mobility(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters, HypiC::Rate_Table_Object Ionization_Rates){
-        double Elec_Cycl_Freq;
-        double Beta;
-        double Omega;
-        
-        for(size_t c=0; c<Electrons._nElectrons; ++c){
-            Electrons.Electron_Temperature_eV[c] = (2.0/3.0) * Electrons.EnergyDensity[c] /Electrons.Plasma_Density_m3[c];
-            //P = n * e * T
-            Electrons.Electron_Pressure[c] =  (2.0/3.0) * 1.602176634e-19 * Electrons.EnergyDensity[c];
-
-        
-            //This seems to be super complicated?? But Landmark seems to be constant 2.5e-13 rate?
-            Electrons.Freq_Elec_Neutral[c] = 2.5e-13 * Electrons.Neutral_Density_m3[c];
-            
-            //Electrons.Freq_Classical[c] = Electrons.Freq_Elec_Neutral[c] + Electrons.Freq_Elec_Ion[c];
-            Electrons.Freq_Classical[c] = Electrons.Freq_Elec_Neutral[c];
-
-            //Seems like Radial Loss Freq is a constant 1e7 for Landmark?
-            if (Electrons.Cell_Center[c] <= Simulation_Parameters.Channel_Length_m) {
-                Electrons.Freq_Electron_Wall_Collision[c] = 1e7 ;
-            }
-            //update the ionization rate
-            Electrons.Ionization_Rate[c] = Ionization_Rates.interpolate(Electrons.Electron_Temperature_eV[c]);
-            //update the anomalous frequency 
-            Elec_Cycl_Freq = 1.602176634e-19 * Electrons.Magnetic_Field_T[c] / 9.10938356e-31;
-
-            //Might need to change this to 0.1, 1?
-            if (Electrons.Cell_Center[c] <= Simulation_Parameters.Channel_Length_m){
-               Beta = 0.1 / 16.0; 
-            }else{
-               Beta = 1.0 / 16.0;
-            }
-
-            Electrons.Freq_Anomalous_Collision[c] = Elec_Cycl_Freq * Beta;
-
-
-            //update total collision frequency
-            Electrons.Freq_Total_Electron_Collision[c] = Electrons.Freq_Electron_Wall_Collision[c] + Electrons.Freq_Anomalous_Collision[c] + Electrons.Freq_Classical[c];
-
-            Omega =  1.602176634e-19 * Electrons.Magnetic_Field_T[c] / (9.10938356e-31 *Electrons.Freq_Total_Electron_Collision[c]);
-            Electrons.Electron_Mobility[c] = 1.602176634e-19 / (9.10938356e-31 * Electrons.Freq_Total_Electron_Collision[c] * (1+pow(Omega,2.0)));
-            //std::cout << Electrons.Electron_Mobility[c] << "\n";
-        }
-    }
-
     double Forward_Difference(double f0, double f1, double f2, double x0, double x1, double x2){
         double h1 = x1 - x0;
         double h2 = x2 - x1;
@@ -358,7 +313,7 @@ namespace HypiC{
             enemu1 = 1.602176634e-19 * Electrons.Plasma_Density_m3[c] * Electrons.Electron_Mobility[c];
             enemu2 = 1.602176634e-19 * Electrons.Plasma_Density_m3[c+1] * Electrons.Electron_Mobility[c+1];
 
-            std::cout << "enemu1: " << enemu1 << "\n";
+            //std::cout << "enemu1: " << enemu1 << "\n";
             //std::cout << "enemu2: " << enemu2 << "\n";
             //std::cout << "density1: " << Electrons.Plasma_Density_m3[c] << "\n";
            //std::cout << "density2: " << Electrons.Plasma_Density_m3[c+1] << "\n";
@@ -378,9 +333,9 @@ namespace HypiC{
 
         }
 
-        std::cout << Simulation_Parameters.Discharge_Voltage_V << "\n";
-        std::cout << int1 << "\n";
-        std::cout << int2 << "\n";
+        //std::cout << Simulation_Parameters.Discharge_Voltage_V << "\n";
+        //std::cout << int1 << "\n";
+        //std::cout << int2 << "\n";
 
         double Discharge_Current = (Simulation_Parameters.Discharge_Voltage_V + int1)/int2;
         return Discharge_Current;

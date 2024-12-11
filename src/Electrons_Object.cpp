@@ -87,4 +87,48 @@ namespace HypiC
         return this->Electric_Field_V_m[index];
     }
 
+
+    void Electrons_Object::Update_Mobility(HypiC::Options_Object Simulation_Parameters, HypiC::Rate_Table_Object Ionization_Rates){
+        double Elec_Cycl_Freq;
+        double Beta;
+        double Omega;
+        
+        for(size_t c=0; c<this->_nElectrons; ++c){
+            this->Electron_Temperature_eV[c] = (2.0/3.0) * this->EnergyDensity[c] /this->Plasma_Density_m3[c];
+            //P = n * e * T
+            this->Electron_Pressure[c] =  (2.0/3.0) * 1.602176634e-19 * this->EnergyDensity[c];
+
+        
+            //This seems to be super complicated?? But Landmark seems to be constant 2.5e-13 rate?
+            this->Freq_Elec_Neutral[c] = 2.5e-13 * this->Neutral_Density_m3[c];
+            
+            //Electrons.Freq_Classical[c] = Electrons.Freq_Elec_Neutral[c] + Electrons.Freq_Elec_Ion[c];
+            this->Freq_Classical[c] = this->Freq_Elec_Neutral[c];
+
+            //Seems like Radial Loss Freq is a constant 1e7 for Landmark?
+            if (this->Cell_Center[c] <= Simulation_Parameters.Channel_Length_m) {
+                this->Freq_Electron_Wall_Collision[c] = 1e7 ;
+            }
+            //update the ionization rate
+            this->Ionization_Rate[c] = Ionization_Rates.interpolate(this->Electron_Temperature_eV[c]);
+            //update the anomalous frequency 
+            Elec_Cycl_Freq = 1.602176634e-19 * this->Magnetic_Field_T[c] / 9.10938356e-31;
+
+            //Might need to change this to 0.1, 1?
+            if (this->Cell_Center[c] <= Simulation_Parameters.Channel_Length_m){
+               Beta = 0.1 / 16.0; 
+            }else{
+               Beta = 1.0 / 16.0;
+            }
+
+            this->Freq_Anomalous_Collision[c] = Elec_Cycl_Freq * Beta;
+
+
+            //update total collision frequency
+            this->Freq_Total_Electron_Collision[c] = this->Freq_Electron_Wall_Collision[c] + this->Freq_Anomalous_Collision[c] + this->Freq_Classical[c];
+
+            Omega =  1.602176634e-19 * this->Magnetic_Field_T[c] / (9.10938356e-31 *this->Freq_Total_Electron_Collision[c]);
+            this->Electron_Mobility[c] = 1.602176634e-19 / (9.10938356e-31 * this->Freq_Total_Electron_Collision[c] * (1+pow(Omega,2.0)));
+        }
+    }
 }
