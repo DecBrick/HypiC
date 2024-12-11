@@ -2,9 +2,11 @@
 
 #include "HypiCpp.hpp"
 #include <iostream>
+#include <chrono>
 
 
 int main(){
+    auto start = std::chrono::high_resolution_clock::now();
     std::cout << "-------------------------------------\n";
     std::cout << "HypiC++ version 0.0.0\n";
     std::cout << "-------------------------------------\n";
@@ -83,5 +85,10 @@ int main(){
 
     //final output
     std::cout << "Simulation Complete\n";
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop-start);
+
+    std::cout << "Run time in s was:" << duration.count() << "\n";
+
     Results.Write_Output("Output.csv", Input_Options.nCells);
 }

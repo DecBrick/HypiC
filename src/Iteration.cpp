@@ -124,7 +124,7 @@ namespace HypiC{
         //Electron Velocity + Electron Kinetic
         for(size_t c1=0; c1<Simulation_Parameters.nCells; ++c1){
             Electrons.Electron_Velocity_m_s[c1] = (Electrons.Ion_Current_Density[c1] - Discharge_Current/Simulation_Parameters.Channel_Area_m2/1.602176634e-19 / Electrons.EnergyDensity[c1]);
-            Electrons.Electron_Kinetic_Energy[c1] = 0.5 * 9.10938356e-31 * (1 + pow(1.602176634e-19*Electrons.Magnetic_Field_G[c1]/9.10938356e-31/Electrons.Freq_Total_Electron_Collision[c1],2)*pow(Electrons.Electron_Velocity_m_s[c1],2)/1.602176634e-19);
+            Electrons.Electron_Kinetic_Energy[c1] = 0.5 * 9.10938356e-31 * (1 + pow(1.602176634e-19*Electrons.Magnetic_Field_T[c1]/9.10938356e-31/Electrons.Freq_Total_Electron_Collision[c1],2)*pow(Electrons.Electron_Velocity_m_s[c1],2)/1.602176634e-19);
         }
 
         //Compute Pressure graidient, EFIeld, Potential, Thermal Conductivity, Energy
@@ -291,7 +291,7 @@ namespace HypiC{
             //update the ionization rate
             Electrons.Ionization_Rate[c] = Ionization_Rates.interpolate(Electrons.Electron_Temperature_eV[c]);
             //update the anomalous frequency 
-            Elec_Cycl_Freq = 1.602176634e-19 * Electrons.Magnetic_Field_G[c] / 9.10938356e-31;
+            Elec_Cycl_Freq = 1.602176634e-19 * Electrons.Magnetic_Field_T[c] / 9.10938356e-31;
 
             //Might need to change this to 0.1, 1?
             if (Electrons.Cell_Center[c] <= Simulation_Parameters.Channel_Length_m){
@@ -306,7 +306,7 @@ namespace HypiC{
             //update total collision frequency
             Electrons.Freq_Total_Electron_Collision[c] = Electrons.Freq_Electron_Wall_Collision[c] + Electrons.Freq_Anomalous_Collision[c] + Electrons.Freq_Classical[c];
 
-            Omega =  1.602176634e-19 * Electrons.Magnetic_Field_G[c] / (9.10938356e-31 *Electrons.Freq_Total_Electron_Collision[c]);
+            Omega =  1.602176634e-19 * Electrons.Magnetic_Field_T[c] / (9.10938356e-31 *Electrons.Freq_Total_Electron_Collision[c]);
             Electrons.Electron_Mobility[c] = 1.602176634e-19 / (9.10938356e-31 * Electrons.Freq_Total_Electron_Collision[c] * (1+pow(Omega,2)));
         }
     }

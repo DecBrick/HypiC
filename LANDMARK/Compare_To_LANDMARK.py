@@ -27,7 +27,8 @@ Base_phi = pd.read_csv(os.path.join(Landmark_base_path, "potential_hybrid.csv"),
 """
 Load the simulation 
 """
-Simulation_path = "C:/Users/brickd/Documents/Grad_classes/Scientific_Computing/Project/Build/test/Test_Output.csv"
+#Simulation_path = "C:/Users/brickd/Documents/Grad_classes/Scientific_Computing/Project/Build/test/Test_Output.csv"
+Simulation_path = "C:/Users/brickd/Documents/Grad_classes/Scientific_Computing/Project/Build/Output.csv"
 Model_Results = pd.read_csv(Simulation_path, index_col=False).to_numpy(np.float64)
 
 
@@ -43,6 +44,7 @@ plt.plot(Base_E[:,0], Base_E[:,1], 'k')
 plt.plot(Model_Results[:,0], Model_Results[:,10], 'r')
 plt.xlabel("Axial Position, meters")
 plt.ylabel("Electric Field, V/m")
+plt.legend(["LANDMARK", "HypiC++"])
 plt.savefig(os.path.join(save_path, "Electric_Field.png"), dpi=dpi, bbox_inches='tight') 
 
 #Energy
@@ -51,6 +53,7 @@ plt.plot(Base_energy[:,0], Base_energy[:,1], 'k')
 plt.plot(Model_Results[:,0], 1.5 * Model_Results[:,8] * Model_Results[:,4], 'r')
 plt.xlabel("Axial Position, meters")
 plt.ylabel("Electron Energy Density, eV/m^3")
+plt.legend(["LANDMARK", "HypiC++"])
 plt.savefig(os.path.join(save_path, "Energy.png"), dpi=dpi, bbox_inches='tight') 
 
 #Ionization Rate
@@ -59,6 +62,7 @@ plt.plot(Base_ionization[:,0], Base_ionization[:,1], 'k')
 plt.plot(Model_Results[:,0], Model_Results[:,12], 'r')
 plt.xlabel("Axial Position, meters")
 plt.ylabel("Ionization Rate, 1/m^3s")
+plt.legend(["LANDMARK", "HypiC++"])
 plt.savefig(os.path.join(save_path, "Ionization_Rate.png"), dpi=dpi, bbox_inches='tight') 
 
 #Neutral Number Density
@@ -67,6 +71,7 @@ plt.plot(Base_nn[:,0], Base_nn[:,1], 'k')
 plt.plot(Model_Results[:,0], Model_Results[:,1], 'r')
 plt.xlabel("Axial Position, meters")
 plt.ylabel("Neutral Number Density, 1/m^3")
+plt.legend(["LANDMARK", "HypiC++"])
 plt.savefig(os.path.join(save_path, "nn.png"), dpi=dpi, bbox_inches='tight') 
 
 #Electron number density
@@ -75,6 +80,7 @@ plt.plot(Base_ne[:,0], Base_ne[:,1], 'k')
 plt.plot(Model_Results[:,0], Model_Results[:,4], 'r')
 plt.xlabel("Axial Position, meters")
 plt.ylabel("Electron Number Density, 1/m^3")
+plt.legend(["LANDMARK", "HypiC++"])
 plt.savefig(os.path.join(save_path, "ne.png"), dpi=dpi, bbox_inches='tight') 
 
 #Potential
@@ -83,4 +89,5 @@ plt.plot(Base_phi[:,0], Base_phi[:,1], 'k')
 plt.plot(Model_Results[:,0], Model_Results[:,13], 'r')
 plt.xlabel("Axial Position, meters")
 plt.ylabel("Potential, V")
+plt.legend(["LANDMARK", "HypiC++"])
 plt.savefig(os.path.join(save_path, "Potential.png"), dpi=dpi, bbox_inches='tight') 

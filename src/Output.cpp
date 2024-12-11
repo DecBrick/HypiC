@@ -18,7 +18,7 @@ namespace HypiC{
             this->Ion_Temperature_eV.push_back(0.0);
             this->Electron_Velocity_m_s.push_back(0.0);
             this->Electron_Temperature_eV.push_back(0.0);
-            this->Magnetic_Field_G.push_back(0.0);
+            this->Magnetic_Field_G.push_back(Grid.Magnetic_Field_T[i] * 10000.0);
             this->Electric_Field_V_m.push_back(0.0);
             this->Anomalous_Frequency_Hz.push_back(0.0);
             this->Ionization_Rate_m3_s.push_back(0.0);
@@ -29,26 +29,29 @@ namespace HypiC{
     void Time_Sum_Object::Time_Sum(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters){
         //increment time
         this->time += Simulation_Parameters.dt;
+
+        //pull timestep
+        double dt = Simulation_Parameters.dt;
         //sum quantities
         for (size_t i=0; i<Simulation_Parameters.nCells; ++i){
-            this->Neutral_Density_m3[i] += Electrons.Neutral_Density_m3[i];
-            this->Neutral_Velocity_m_s[i] += Electrons.Neutral_Velocity_m_s[i];
-            this->Neutral_Temperature_K[i] += Electrons.Neutral_Temperature_K[i];
-            this->Plasma_Density_m3[i] += Electrons.Plasma_Density_m3[i];
-            this->Ion_Velocity_m_s[i] += Electrons.Ion_Velocity_m_s[i];
-            this->Ion_Temperature_eV[i] += Electrons.Ion_Temperature_eV[i];
-            this->Electron_Velocity_m_s[i] += Electrons.Electron_Velocity_m_s[i];
-            this->Electron_Temperature_eV[i] += Electrons.Electron_Temperature_eV[i];
-            this->Magnetic_Field_G[i] += Electrons.Magnetic_Field_G[i];
-            this->Electric_Field_V_m[i] += Electrons.Electric_Field_V_m[i];
-            this->Anomalous_Frequency_Hz[i] += Electrons.Anomalous_Frequency_Hz[i];
-            this->Ionization_Rate_m3_s[i] += Electrons.Ionization_Rate[i];
-            this->Potential_V[i] += Electrons.Potential[i];
+            this->Neutral_Density_m3[i] += dt*Electrons.Neutral_Density_m3[i];
+            this->Neutral_Velocity_m_s[i] += dt*Electrons.Neutral_Velocity_m_s[i];
+            this->Neutral_Temperature_K[i] += dt*Electrons.Neutral_Temperature_K[i];
+            this->Plasma_Density_m3[i] += dt*Electrons.Plasma_Density_m3[i];
+            this->Ion_Velocity_m_s[i] += dt*Electrons.Ion_Velocity_m_s[i];
+            this->Ion_Temperature_eV[i] += dt*Electrons.Ion_Temperature_eV[i];
+            this->Electron_Velocity_m_s[i] += dt*Electrons.Electron_Velocity_m_s[i];
+            this->Electron_Temperature_eV[i] += dt*Electrons.Electron_Temperature_eV[i];
+            this->Electric_Field_V_m[i] += dt*Electrons.Electric_Field_V_m[i];
+            this->Anomalous_Frequency_Hz[i] += dt*Electrons.Anomalous_Frequency_Hz[i];
+            this->Ionization_Rate_m3_s[i] += dt*Electrons.Ionization_Rate[i];
+            this->Potential_V[i] += dt*Electrons.Potential[i];
         }
     };
 
     void Time_Sum_Object::Write_Output(std::string Filename, size_t nCells){
         int digits = 3;
+        //for unit testing
         if (this->time ==0){
             this->time = 1;
         }
@@ -69,7 +72,7 @@ namespace HypiC{
             f << std::setprecision(digits) << this->Ion_Temperature_eV[i] / this->time << ",";
             f << std::setprecision(digits) << this->Electron_Velocity_m_s[i] / this->time << ",";
             f << std::setprecision(digits) << this->Electron_Temperature_eV[i] / this->time << ",";
-            f << std::setprecision(digits) << this->Magnetic_Field_G[i] / this->time << ",";
+            f << std::setprecision(digits) << this->Magnetic_Field_G[i] << ",";
             f << std::setprecision(digits) << this->Electric_Field_V_m[i] / this->time << ",";
             f << std::setprecision(digits) << this->Anomalous_Frequency_Hz[i] / this->time << ",";
             f << std::setprecision(digits) << this->Ionization_Rate_m3_s[i] / this->time << ",";
@@ -79,7 +82,7 @@ namespace HypiC{
 
         //close the file
         f.close();
-
+        std::cout << "Simulation Time is: " << time <<"\n";
         std::cout << "Output File Written\n";
     };
 }

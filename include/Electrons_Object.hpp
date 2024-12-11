@@ -30,7 +30,7 @@ namespace HypiC{
             std::vector<double> Ion_Current_Density;
             std::vector<double> Electron_Velocity_m_s;
             std::vector<double> Electron_Temperature_eV;
-            std::vector<double> Magnetic_Field_G;
+            std::vector<double> Magnetic_Field_T;
             std::vector<double> Electric_Field_V_m;
             std::vector<double> Potential;
             std::vector<double> Anomalous_Frequency_Hz;

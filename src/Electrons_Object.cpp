@@ -30,7 +30,7 @@ namespace HypiC
         this->Electron_Temperature_eV.push_back(electron_temp);
         this->Electron_Kinetic_Energy.push_back(1.5 * electron_density * electron_temp);
         this->Electron_Pressure.push_back(1.602176634e-19 * electron_density * electron_temp);
-        this->Magnetic_Field_G.push_back(magnetic_field);
+        this->Magnetic_Field_T.push_back(magnetic_field);
         this->EnergyDensity.push_back(energy_density);
         this->Electron_Velocity_m_s.push_back(electron_velocity);
         this->Anomalous_Frequency_Hz.push_back(anom_freq);

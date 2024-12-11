@@ -100,7 +100,7 @@ namespace HypiC{
         pos = line.find_first_of("//");
         this->Initial_Max_Ion_Density = std::stod(line.substr(0, pos));
     };
-    
+
     double Maxwellian_Sampler(double mu, double sigma){
         std::random_device rd{};
         std::mt19937 gen{rd()};
@@ -327,8 +327,7 @@ namespace HypiC{
             Inputs.Initial_Cathode_Temperature_eV, Inputs.Initial_Max_Electron_Temperature_eV, 
             Inputs.Channel_Length_m, Inputs.Domain_Length_m);
             B = HypiC::Initial_Magnetic_Field(0.015, Inputs.Channel_Length_m, z);
-
-            EnergyDensity = ne * Te * 3/2;
+            EnergyDensity = ne * Te * 3.0/2.0;
 
             v = HypiC::Initial_Ion_Bulk_Velocity(Inputs.Initial_Anode_Temperature_eV, Inputs.Discharge_Voltage_V,
             z, Inputs.Channel_Length_m, Inputs.Domain_Length_m);
