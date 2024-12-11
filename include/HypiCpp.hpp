@@ -9,6 +9,7 @@
 #include "Rate_Table.hpp"
 #include "Initialize.hpp"
 #include "Iteration.hpp"
+#include "Input.hpp"
 #include "Output.hpp"
 #include "Interpolate.hpp"
 

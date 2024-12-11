@@ -115,21 +115,22 @@ namespace HypiC{
 
     void Update_Electrons(HypiC::Electrons_Object Electrons, HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Rate_Table_Object Ionization_Rates, HypiC::Rate_Table_Object Collision_Loss_Rates, HypiC::Options_Object Simulation_Parameters){ //,double t){
         
-        //first update the electron mobility
+        //first update the electron mobility and Temperature
         Update_Mobility(Electrons, Simulation_Parameters, Ionization_Rates);
+
+        //then compute pressure gradient
+        Compute_Pressure_Gradient(Electrons,Simulation_Parameters);
 
         //Discharge Voltage
         double Discharge_Current = Integrate_Discharge_Current(Electrons, Simulation_Parameters);
-
+        std::cout << Discharge_Current << "\n";
         //Electron Velocity + Electron Kinetic
         for(size_t c1=0; c1<Simulation_Parameters.nCells; ++c1){
             Electrons.Electron_Velocity_m_s[c1] = (Electrons.Ion_Current_Density[c1] - Discharge_Current/Simulation_Parameters.Channel_Area_m2/1.602176634e-19 / Electrons.EnergyDensity[c1]);
             Electrons.Electron_Kinetic_Energy[c1] = 0.5 * 9.10938356e-31 * (1 + pow(1.602176634e-19*Electrons.Magnetic_Field_T[c1]/9.10938356e-31/Electrons.Freq_Total_Electron_Collision[c1],2)*pow(Electrons.Electron_Velocity_m_s[c1],2)/1.602176634e-19);
         }
 
-        //Compute Pressure graidient, EFIeld, Potential, Thermal Conductivity, Energy
-        Compute_Pressure_Gradient(Electrons,Simulation_Parameters);
-
+        //Compute E Field, Potential, Thermal Conductivity, Energy
         Compute_Electric_Field(Electrons,Simulation_Parameters, Discharge_Current);
 
         Solve_Potential(Electrons,Simulation_Parameters);
@@ -277,9 +278,7 @@ namespace HypiC{
             //P = n * e * T
             Electrons.Electron_Pressure[c] =  (2.0/3.0) * 1.602176634e-19 * Electrons.EnergyDensity[c];
 
-            //Update Electron-Ion Collisions - NOT NECESSARY FOR LANDMARK AAAAA
-            //Electrons.Freq_Elec_Ion[c] = Freq_Electron_Ion(Electrons.EnergyDensity[c],Electrons.Electron_Temperature_eV[c],Electrons.Ion_Z[c]);
-            //Update OTHER
+        
             //This seems to be super complicated?? But Landmark seems to be constant 2.5e-13 rate?
             Electrons.Freq_Elec_Neutral[c] = 2.5e-13 * Electrons.Neutral_Density_m3[c];
             
@@ -287,7 +286,9 @@ namespace HypiC{
             Electrons.Freq_Classical[c] = Electrons.Freq_Elec_Neutral[c];
 
             //Seems like Radial Loss Freq is a constant 1e7 for Landmark?
-            Electrons.Freq_Electron_Wall_Collision[c] = 1e7 * Linear_Transition(Electrons.Cell_Center[c],Simulation_Parameters.Channel_Length_m, 0.2*Simulation_Parameters.Channel_Length_m,1,0);
+            if (Electrons.Cell_Center[c] <= Simulation_Parameters.Channel_Length_m) {
+                Electrons.Freq_Electron_Wall_Collision[c] = 1e7 ;
+            }
             //update the ionization rate
             Electrons.Ionization_Rate[c] = Ionization_Rates.interpolate(Electrons.Electron_Temperature_eV[c]);
             //update the anomalous frequency 
@@ -307,7 +308,8 @@ namespace HypiC{
             Electrons.Freq_Total_Electron_Collision[c] = Electrons.Freq_Electron_Wall_Collision[c] + Electrons.Freq_Anomalous_Collision[c] + Electrons.Freq_Classical[c];
 
             Omega =  1.602176634e-19 * Electrons.Magnetic_Field_T[c] / (9.10938356e-31 *Electrons.Freq_Total_Electron_Collision[c]);
-            Electrons.Electron_Mobility[c] = 1.602176634e-19 / (9.10938356e-31 * Electrons.Freq_Total_Electron_Collision[c] * (1+pow(Omega,2)));
+            Electrons.Electron_Mobility[c] = 1.602176634e-19 / (9.10938356e-31 * Electrons.Freq_Total_Electron_Collision[c] * (1+pow(Omega,2.0)));
+            //std::cout << Electrons.Electron_Mobility[c] << "\n";
         }
     }
 
@@ -343,20 +345,43 @@ namespace HypiC{
         double int1 = 0;
         double int2 = 0;
         double Dz = Simulation_Parameters.Domain_Length_m / Simulation_Parameters.nCells;
+        double dz;
+        double int1_1;
+        double int1_2;
+        double int2_1;
+        double int2_2;
+        double enemu1;
+        double enemu2;
 
         for (size_t c=0; c<Simulation_Parameters.nCells-1; ++c){
-            double dz = Dz * c;
-            double int1_1 = (Electrons.Ion_Current_Density[c]/1.602176634e-19/Electrons.Electron_Mobility[c] + Electrons.Electron_Pressure_Gradient[c]/Electrons.EnergyDensity[c]);
-            double int1_2 = (Electrons.Ion_Current_Density[c+1]/1.602176634e-19/Electrons.Electron_Mobility[c+1] + Electrons.Electron_Pressure_Gradient[c+1]/Electrons.EnergyDensity[c+1]);
+            //dz = Dz * c;
+            enemu1 = 1.602176634e-19 * Electrons.Plasma_Density_m3[c] * Electrons.Electron_Mobility[c];
+            enemu2 = 1.602176634e-19 * Electrons.Plasma_Density_m3[c+1] * Electrons.Electron_Mobility[c+1];
 
-            int1 += 0.5 * dz * (int1_1 + int1_2);
+            std::cout << "enemu1: " << enemu1 << "\n";
+            //std::cout << "enemu2: " << enemu2 << "\n";
+            //std::cout << "density1: " << Electrons.Plasma_Density_m3[c] << "\n";
+           //std::cout << "density2: " << Electrons.Plasma_Density_m3[c+1] << "\n";
+            //std::cout << "gradPe1: " << Electrons.Electron_Pressure_Gradient[c] << "\n";
+            //std::cout << "gradPe2: " << Electrons.Electron_Pressure_Gradient[c+1] << "\n";
 
-            double int2_1 = 1/(1.602176634e-19 * Electrons.EnergyDensity[c] * Electrons.Electron_Mobility[c]*Simulation_Parameters.Channel_Area_m2);
-            double int2_2 = 1/(1.602176634e-19 * Electrons.EnergyDensity[c+1] * Electrons.Electron_Mobility[c+1]*Simulation_Parameters.Channel_Area_m2);
+            int1_1 = (Electrons.Ion_Current_Density[c]/enemu1 + Electrons.Electron_Pressure_Gradient[c]/Electrons.Plasma_Density_m3[c]/1.602176634e-19 );
+            int1_2 = (Electrons.Ion_Current_Density[c+1]/enemu2 + Electrons.Electron_Pressure_Gradient[c+1]/Electrons.Plasma_Density_m3[c+1]/1.602176634e-19);
 
-            int2 += 0.5 * dz * (int2_1 + int2_2);
+            int1 += 0.5 * Dz * (int1_1 + int1_2);
+
+            //the area is only correct within the channel, need to add plume area model
+            int2_1 = enemu1*Simulation_Parameters.Channel_Area_m2;
+            int2_2 = enemu2*Simulation_Parameters.Channel_Area_m2;
+
+            int2 += 0.5 * Dz * (int2_1 + int2_2);
 
         }
+
+        std::cout << Simulation_Parameters.Discharge_Voltage_V << "\n";
+        std::cout << int1 << "\n";
+        std::cout << int2 << "\n";
+
         double Discharge_Current = (Simulation_Parameters.Discharge_Voltage_V + int1)/int2;
         return Discharge_Current;
     }
