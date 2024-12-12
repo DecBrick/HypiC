@@ -58,6 +58,9 @@ namespace HypiC{
             double Get_PlasmaDensity(size_t index);
             double Get_ElectronTemperature(size_t index);
             double Get_ElectricField(size_t index);
+            void Clear_Out_Particles(size_t nNeutrals, size_t nIons);
+            void Update_From_Neutrals(size_t index, double neutral_density, double neutral_density_next, double neutral_velocity, double neutral_velocity_next);
+            void Update_From_Ions(size_t index, double plasma_density, double plasma_density_next, double current_density, double current_density_next, double ion_velocity, double ion_velocity_next);
 
             void Update_Mobility(HypiC::Options_Object Simulation_Parameters, HypiC::Rate_Table_Object Ionization_Rates);
 

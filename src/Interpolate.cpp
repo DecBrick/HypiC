@@ -4,87 +4,71 @@
 
 namespace HypiC{
     HypiC::Electrons_Object Particles_to_Grid(HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Electrons_Object Electrons){
-        // loop over cells
-        for(size_t c=0; c<Electrons._nElectrons; ++c){
-            double N_den = 0.0;
-            double N_flux = 0.0;
-            double P_den = 0.0;
-            double I_vel = 0.0;
-            double J_den = 0.0; // current density
-            double dz = Electrons.Grid_Step;
-            double z_cell = Electrons.Cell_Center[c];
-            double z_p;
-            double z_rel;
-            double s;
-            double w; 
+        // remove previous particle data to start summations at 0.0
+        Electrons.Clear_Out_Particles(Neutrals._nParticles,Ions._nParticles);
+        
+        double dz = Electrons.Grid_Step;
+        // loop over neutrals
+        for(size_t i=0; i<Neutrals._nParticles; ++i){
+            double z_p = Neutrals.get_Position(i);
 
-            //std::cout << z_cell << "\n";
-            //std::cout << dz << "\n";
-
-            // loop over neutrals
-            for(size_t i=0; i<Neutrals._nParticles; ++i){
+            // loop over cells
+            for(size_t c=0; c<Electrons._nElectrons; ++c){
                 // determine if particle is within cell
-                z_p = Neutrals.get_Position(i);
-                z_rel = fabs( (z_cell - z_p)/(dz));
+                double z_cell = Electrons.Get_CellCenter(c);
+                double z_rel = fabs( (z_cell - z_p)/dz);
                 if(z_rel < 1){
-                    // shape factor
-                    s = 1 - z_rel;
+                    // shape factor (s for next cell = z_rel)
+                    double s = 1 - z_rel;
                     // weight
-                    w = Neutrals.get_Weight(i);
-                    // calculate partial number density
-                    N_den += s*w /dz;
-                    // calculaye partial velocity
-                    N_flux += s*(w/dz)*Neutrals.get_Velocity(i);
+                    double w = Neutrals.get_Weight(i);
+                    // calculate partial neutral density for this cell and next
+                    double N_den = s*w /dz;
+                    double N_den_next = z_rel*w/dz;
+                    // calculate partial neutral flux for this cell and next
+                    double N_flux = s*(w/dz)*Neutrals.get_Velocity(i);
+                    double N_flux_next = z_rel*(w/dz)*Neutrals.get_Velocity(i);
+                    // add values to cells' summations
+                    Electrons.Update_From_Neutrals(c,N_den,N_den_next,N_flux/N_den,N_flux_next/N_den_next);
+                    break;
                 }
             }
-
-            // loop over ions
-            for(size_t i=0; i<Ions._nParticles; ++i){
-                // determine if particle is within cell
-                z_p = Ions.get_Position(i);
-                z_rel = fabs( (z_cell - z_p)/(dz));
-                if (c == 199 & z_p > 0.0498){
-                    std::cout << "--------\n";
-                    std::cout << z_rel << "\n";
-                    std::cout << z_cell << "\n";
-                    std::cout << z_p << "\n";
-                    std::cout << dz << "\n";
-                }
-                if(z_rel < 1){
-                    // shape factor
-                    s = 1 - z_rel;
-                    // weight
-                    w = Ions.get_Weight(i);
-                    // calculate partial number density
-                    P_den += s*w / dz;
-                    // calculate partial current density
-                    J_den += s*(w/dz)*Ions.get_Velocity(i);
-                    
-                    /*if (c == 199) { 
-                        std::cout << "---------------------\n";
-                        std::cout << i <<"\n";
-                        std::cout << "---------------------\n";
-                        std::cout << Ions.get_Position(i) <<"\n";
-                        std::cout << Ions.get_Weight(i) <<"\n";
-                        std::cout << Ions.get_Velocity(i) <<"\n";
-                    }*/
-                }
-            }
-
-            // set cell densities and velocities
-            Electrons.Set_Densities(c,N_den,P_den,1.602176634e-19 * J_den);
-            Electrons.Set_Velocities(c,N_flux / N_den ,J_den / P_den);
         }
 
-        return Electrons;
+        // loop over ions
+        for(size_t i=0; i<Ions._nParticles; ++i){
+            double z_p = Ions.get_Position(i);
 
+            // loop over cells
+            for(size_t c=0; c<Electrons._nElectrons; ++c){
+                // determine if particle is within cell
+                double z_cell = Electrons.Get_CellCenter(c);
+                double z_rel = fabs( (z_cell - z_p)/dz);
+                if(z_rel < 1){
+                    // shape factor (s for next cell = z_rel)
+                    double s = 1 - z_rel;
+                    // weight
+                    double w = Ions.get_Weight(i);
+                    // calculate partial plasma density for this cell and next
+                    double P_den = s*w /dz;
+                    double P_den_next = z_rel*w/dz;
+                    // calculate partial current density for this cell and next
+                    double J_den = s*(w/dz)*Ions.get_Velocity(i);
+                    double J_den_next = z_rel*(w/dz)*Ions.get_Velocity(i);
+                    // add values to cells' summations
+                    Electrons.Update_From_Ions(c,P_den,P_den_next,1.602176634e-19*J_den,1.602176634e-19*J_den_next,J_den/P_den,J_den_next/P_den_next);
+                    break;
+                }
+            }
+        }
+        return Electrons;
     }
 
     HypiC::Particles_Object Grid_to_Particles_Neutrals(HypiC::Particles_Object Neutrals, HypiC::Electrons_Object Electrons){
         // loop over neutrals
         for(size_t i=0; i<Neutrals._nParticles; ++i){
-            double e_den = 0.0;
-            double e_tmp = 0.0;
+            double e_den;
+            double e_tmp;
             double dz = Electrons.Grid_Step;
             double z_p = Neutrals.get_Position(i);
 
@@ -94,12 +78,13 @@ namespace HypiC{
                 double z_cell = Electrons.Get_CellCenter(c);
                 double z_rel = abs( (z_cell - z_p)/dz);
                 if(z_rel < 1){
-                    // shape factor
+                    // shape factor (s for next cell = z_rel)
                     double s = 1 - z_rel;
-                    // calculate partial electron density
-                    e_den += s*Electrons.Get_PlasmaDensity(c);
-                    // calculate partial electron temperature
-                    e_tmp += s*Electrons.Get_ElectronTemperature(c);
+                    // calculate partial electron density from this cell and next
+                    e_den = s*Electrons.Get_PlasmaDensity(c) + z_rel*Electrons.Get_PlasmaDensity(c+1);
+                    // calculate partial electron temperature from this cell and next
+                    e_tmp = s*Electrons.Get_ElectronTemperature(c) + z_rel*Electrons.Get_ElectronTemperature(c+1);
+                    break;
                 }
             }
 
@@ -113,9 +98,9 @@ namespace HypiC{
     HypiC::Particles_Object Grid_to_Particles_Ions(HypiC::Particles_Object Ions, HypiC::Electrons_Object Electrons){
         // loop over ions
         for(size_t i=0; i<Ions._nParticles; ++i){
-            double e_den = 0.0;
-            double e_tmp = 0.0;
-            double E_fld = 0.0;
+            double e_den;
+            double e_tmp;
+            double E_fld;
             double dz = Electrons.Grid_Step;
             double z_p = Ions.get_Position(i);
 
@@ -125,14 +110,15 @@ namespace HypiC{
                 double z_cell = Electrons.Get_CellCenter(c);
                 double z_rel = abs( (z_cell - z_p)/dz);
                 if(z_rel < 1){
-                    // shape factor
+                    // shape factor (s for next cell = z_rel)
                     double s = 1 - z_rel;
-                    // calculate partial electron density
-                    e_den += s*Electrons.Get_PlasmaDensity(c);
-                    // calculate partial electron temperature
-                    e_tmp += s*Electrons.Get_ElectronTemperature(c);
-                    // calculate partial electric field
-                    E_fld += s*Electrons.Get_ElectricField(c);
+                    // calculate partial electron density from this cell and next
+                    e_den = s*Electrons.Get_PlasmaDensity(c) + z_rel*Electrons.Get_PlasmaDensity(c+1);
+                    // calculate partial electron temperature from this cell and next
+                    e_tmp = s*Electrons.Get_ElectronTemperature(c) + z_rel*Electrons.Get_ElectronTemperature(c+1);
+                    // calculate partial electric field from this cell and next
+                    E_fld = s*Electrons.Get_ElectricField(c) + z_rel*Electrons.Get_ElectricField(c+1);
+                    break;
                 }
             }
 
