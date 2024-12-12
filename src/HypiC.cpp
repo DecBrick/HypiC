@@ -1,5 +1,4 @@
 #include <string>
-
 #include "HypiCpp.hpp"
 #include <iostream>
 #include <chrono>
@@ -65,9 +64,8 @@ int main(){
     //main loop
     for(size_t i=0; i < Input_Options.nIterations; ++i){
         //update heavy species
-        HypiC::Update_Heavy_Species(Neutrals, Ions, Ionization_Rates, Input_Options);
-        //std::cout << "Neutral Updated\n";
-        //Ions = HypiC::Update_Heavy_Species_Ions(Neutrals, Ions, Ionization_Rates, Input_Options);
+        Neutrals = HypiC::Update_Heavy_Species_Neutrals(Neutrals, Ions, Ionization_Rates, Input_Options);
+        Ions = HypiC::Update_Heavy_Species_Ions(Neutrals, Ions, Ionization_Rates, Input_Options);
         //std::cout << "Ions Updated\n";
         //interpolate
         std::cout << "Updated\n";
