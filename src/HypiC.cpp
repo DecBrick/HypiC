@@ -59,18 +59,21 @@ int main(){
     
 
     std::cout << "Initialization Complete\n";
-
+    std::cout << Electrons.Id << "\n";
+    std::cout << Electrons.Ion_Velocity_m_s[199] << "\n";
+    std::cout << Electrons.Plasma_Density_m3[5] << "\n";
     //main loop
     for(size_t i=0; i < Input_Options.nIterations; ++i){
         //update heavy species
         Neutrals = HypiC::Update_Heavy_Species_Neutrals(Neutrals, Ions, Ionization_Rates, Input_Options);
-        std::cout << "Neutrals\n";
         Ions = HypiC::Update_Heavy_Species_Ions(Neutrals, Ions, Ionization_Rates, Input_Options);
-        //std::cout << "Ions Updated\n";
         //interpolate
-        std::cout << "Updated\n";
-        Electrons = HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
+        double max_z = 0.0;
 
+        for (size_t i=0; i<Ions._nParticles; ++i){ max_z = std::max(max_z, Ions.get_Position(i)); }
+        std::cout << max_z << "\n";
+
+        Electrons = HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
         //update electrons
         Electrons = HypiC::Update_Electrons(Electrons, Neutrals, Ions, Ionization_Rates, Loss_Rates, Input_Options);
 
@@ -87,7 +90,7 @@ int main(){
         }
         
     }
-
+    Results.Time_Sum(Electrons, Input_Options);
     //final output
     std::cout << "Simulation Complete\n";
     auto stop = std::chrono::high_resolution_clock::now();

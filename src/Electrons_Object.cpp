@@ -176,9 +176,20 @@ namespace HypiC
             int2_1 = 1/(enemu1*Simulation_Parameters.Channel_Area_m2);
             int2_2 = 1/(enemu2*Simulation_Parameters.Channel_Area_m2);
 
+
+            /*std::cout << "--------------------\n";
+            std::cout << c << "\n";
+            std::cout << int2_1 << "\n";
+            std::cout << int2_2 << "\n";*/
+
             int2 += 0.5 * Dz * (int2_1 + int2_2);
 
         }
+
+        /*std::cout << this->Plasma_Density_m3[198] << "\n";
+        std::cout << this->Electron_Mobility[198] << "\n";
+        std::cout << int1 << "\n";
+        std::cout << int2 << "\n";*/
 
         this->Id = (Simulation_Parameters.Discharge_Voltage_V + int1)/int2;
     }

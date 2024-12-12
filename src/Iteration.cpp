@@ -117,9 +117,12 @@ namespace HypiC{
         double w;
 
         //push the ions
+        double max_z = 0.0;
         for (size_t i=0; i<Ions._nParticles; ++i){
             Ions.Update_Particle(i, Simulation_Parameters.dt, Ionization_rates);
-
+            if (Ions.get_Weight(i) <=0){
+                std::cout << "Empty Particle\n";
+            }
             //check outflow condition
             z = Ions.get_Position(i);
             if (z > Simulation_Parameters.Domain_Length_m){
@@ -130,6 +133,7 @@ namespace HypiC{
                 Reflect_These.push_back(i);
                 n_reflect += 1;
             }
+            max_z = std::max(max_z, z);
         }
         //enforce ion boundary conditions
         for (size_t i=n_remove; i>0; --i){
@@ -150,6 +154,8 @@ namespace HypiC{
             Ions._nParticles -= 1;//update the number of particles
             Remove_These.pop_back();//remove from the reflect list
         }
+
+        //std::cout << max_z << "\n";
         return Ions;
     };
 
@@ -163,7 +169,7 @@ namespace HypiC{
 
         //Update discharge current
         Electrons.Compute_Discharge_Current(Simulation_Parameters);
-
+        std::cout << Electrons.Id << "\n";
         //Electron Velocity 
         Electrons.Update_Velocity(Simulation_Parameters);
 
@@ -179,18 +185,4 @@ namespace HypiC{
         return Electrons;
     }
 
-    
-
-    
-    //double Freq_Electron_Ion(double EnergyDensity, double ElectronTemp, double IonZ){
-    //    return 2.9e-12 * pow(IonZ,2) * EnergyDensity * Coulomb_Logarithm(EnergyDensity, ElectronTemp, IonZ) / sqrt(pow(ElectronTemp,3));
-    //}
-
-    //double Coulomb_Logarithm(double EnergyDensity, double ElectronTemp, double IonZ){
-    //    if (ElectronTemp < 10 * pow(IonZ,2)) {
-    //        return 23 - 0.5 * log(1e-6 * EnergyDensity * pow(IonZ,2)/ pow(ElectronTemp,3));
-    //    } else {
-    //        return 24 - 0.5 * log(1e-6 * EnergyDensity / pow(ElectronTemp,2));
-    //    }
-    //}
 }

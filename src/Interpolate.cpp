@@ -13,17 +13,24 @@ namespace HypiC{
             double J_den = 0.0; // current density
             double dz = Electrons.Grid_Step;
             double z_cell = Electrons.Cell_Center[c];
+            double z_p;
+            double z_rel;
+            double s;
+            double w; 
+
+            //std::cout << z_cell << "\n";
+            //std::cout << dz << "\n";
 
             // loop over neutrals
             for(size_t i=0; i<Neutrals._nParticles; ++i){
                 // determine if particle is within cell
-                double z_p = Neutrals.get_Position(i);
-                double z_rel = abs( (z_cell - z_p)/(dz));
+                z_p = Neutrals.get_Position(i);
+                z_rel = fabs( (z_cell - z_p)/(dz));
                 if(z_rel < 1){
                     // shape factor
-                    double s = 1 - z_rel;
+                    s = 1 - z_rel;
                     // weight
-                    double w = Neutrals.get_Weight(i);
+                    w = Neutrals.get_Weight(i);
                     // calculate partial number density
                     N_den += s*w /dz;
                     // calculaye partial velocity
@@ -34,18 +41,26 @@ namespace HypiC{
             // loop over ions
             for(size_t i=0; i<Ions._nParticles; ++i){
                 // determine if particle is within cell
-                double z_p = Ions.get_Position(i);
-                double z_rel = abs( (z_cell - z_p)/(dz));
+                z_p = Ions.get_Position(i);
+                z_rel = fabs( (z_cell - z_p)/(dz));
+                if (c == 199 & z_p > 0.0498){
+                    std::cout << "--------\n";
+                    std::cout << z_rel << "\n";
+                    std::cout << z_cell << "\n";
+                    std::cout << z_p << "\n";
+                    std::cout << dz << "\n";
+                }
                 if(z_rel < 1){
                     // shape factor
-                    double s = 1 - z_rel;
+                    s = 1 - z_rel;
                     // weight
-                    double w = Ions.get_Weight(i);
+                    w = Ions.get_Weight(i);
                     // calculate partial number density
                     P_den += s*w / dz;
                     // calculate partial current density
                     J_den += s*(w/dz)*Ions.get_Velocity(i);
-                    /*if (c == 5) { 
+                    
+                    /*if (c == 199) { 
                         std::cout << "---------------------\n";
                         std::cout << i <<"\n";
                         std::cout << "---------------------\n";
