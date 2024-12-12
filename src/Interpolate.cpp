@@ -65,7 +65,7 @@ namespace HypiC{
 
     }
 
-    void Grid_to_Particles(HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Electrons_Object Electrons){
+    HypiC::Particles_Object Grid_to_Particles_Neutrals(HypiC::Particles_Object Neutrals, HypiC::Electrons_Object Electrons){
         // loop over neutrals
         for(size_t i=0; i<Neutrals._nParticles; ++i){
             double e_den = 0.0;
@@ -92,7 +92,10 @@ namespace HypiC{
             Neutrals.set_ElectronDensity(i, e_den);
             Neutrals.set_ElectronTemperature(i, e_tmp);
         }
-        
+        return Neutrals;
+    }
+
+    HypiC::Particles_Object Grid_to_Particles_Ions(HypiC::Particles_Object Ions, HypiC::Electrons_Object Electrons){
         // loop over ions
         for(size_t i=0; i<Ions._nParticles; ++i){
             double e_den = 0.0;
@@ -123,5 +126,6 @@ namespace HypiC{
             Ions.set_ElectronTemperature(i, e_tmp);
             Ions.set_ElectricField(i, E_fld);
         }
+        return Ions;
     }
 }

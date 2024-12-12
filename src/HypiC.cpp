@@ -21,9 +21,9 @@ int main(){
     HypiC::Rate_Table_Object Ionization_Rates = HypiC::Rate_Table_Object();
     HypiC::Rate_Table_Object Loss_Rates = HypiC::Rate_Table_Object();
     //this assumes that the build directory is in the same folder as the HypiC directory, should enforce this.
-    std::string file_path1 = "../HypiC/Reactions/Xe_Ionization_0_to_1.txt";
+    std::string file_path1 = "../Reactions/Xe_Ionization_0_to_1.txt";
     Ionization_Rates.Read_Table(file_path1);
-    std::string file_path2 = "../HypiC/Reactions/Xe_Loss.txt";
+    std::string file_path2 = "../Reactions/Xe_Loss.txt";
     Loss_Rates.Read_Table(file_path2);
 
     std::cout << "Reaction Rates Read\n";
@@ -42,11 +42,7 @@ int main(){
     Electrons.Update_Mobility(Input_Options, Ionization_Rates);
     Electrons.Update_Pressure_Gradient(Input_Options);
     
-    std::cout << Electrons.Electron_Mobility[5] << "\n";
-    std::cout << Electrons.Plasma_Density_m3[5] << "\n";
-    std::cout << Electrons.Ion_Current_Density[5] << "\n";
-    std::cout << Electrons.Ion_Velocity_m_s[5] << "\n";
-    std::cout << Electrons.Electron_Pressure_Gradient[5] << "\n";
+
     std::cout << "Pre Id \n";
 
     double Discharge_Current = HypiC::Integrate_Discharge_Current(Electrons, Input_Options);
@@ -54,7 +50,8 @@ int main(){
 
     HypiC::Compute_Electric_Field(Electrons, Input_Options, Discharge_Current); //or whatever the function is
     //interpolate field back to particles
-    HypiC::Grid_to_Particles(Neutrals, Ions, Electrons);
+    Neutrals = HypiC::Grid_to_Particles_Neutrals(Neutrals, Electrons);
+    Ions = HypiC::Grid_to_Particles_Ions(Ions, Electrons);
 
     //take back half step for ions (neutrals are unaffected by the field) 
     Ions.Velocity_Backstep(Input_Options.dt);
@@ -73,15 +70,18 @@ int main(){
     for(size_t i=0; i < Input_Options.nIterations; ++i){
         //update heavy species
         HypiC::Update_Heavy_Species(Neutrals, Ions, Ionization_Rates, Input_Options);
-
+        //std::cout << "Neutral Updated\n";
+        //Ions = HypiC::Update_Heavy_Species_Ions(Neutrals, Ions, Ionization_Rates, Input_Options);
+        //std::cout << "Ions Updated\n";
         //interpolate
-        HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
+        Electrons = HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
 
         //update electrons
-        HypiC::Update_Electrons(Electrons, Neutrals, Ions, Ionization_Rates, Loss_Rates, Input_Options);
+        Electrons = HypiC::Update_Electrons(Electrons, Neutrals, Ions, Ionization_Rates, Loss_Rates, Input_Options);
 
         //interpolate
-        HypiC::Grid_to_Particles(Neutrals, Ions, Electrons);
+        Neutrals = HypiC::Grid_to_Particles_Neutrals(Neutrals, Electrons);
+        Ions = HypiC::Grid_to_Particles_Ions(Ions, Electrons);
 
         //update time sum
         Results.Time_Sum(Electrons, Input_Options);

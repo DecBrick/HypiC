@@ -18,7 +18,7 @@ TEST_CASE(Xe_Single_Ionization_Read){
 
     //call the read file
     //this assumes that the build directory is in the same folder as the HypiC directory, should enforce this.
-    std::string file_path = "../../HypiC/Reactions/Xe_Ionization_0_to_1.txt";
+    std::string file_path = "../Reactions/Xe_Ionization_0_to_1.txt";
     Test_Table.Read_Table(file_path);
     
     //test that file was read correctly
@@ -38,7 +38,7 @@ TEST_CASE(Interpolation){
 
     //call the read file
     //this assumes that the build directory is in the same folder as the HypiC directory, should enforce this.
-    std::string file_path = "../../HypiC/Reactions/Xe_Ionization_0_to_1.txt";
+    std::string file_path = "../Reactions/Xe_Ionization_0_to_1.txt";
     Test_Table.Read_Table(file_path);
 
     //interpolation tests
