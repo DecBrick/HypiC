@@ -110,10 +110,8 @@ namespace HypiC{
             Remove_These.pop_back();//remove from the reflect list
         }
     };
-
-
-
-    void Update_Electrons(HypiC::Electrons_Object Electrons, HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Rate_Table_Object Ionization_Rates, HypiC::Rate_Table_Object Collision_Loss_Rates, HypiC::Options_Object Simulation_Parameters){ //,double t){
+    
+    HypiC::Electrons_Object Update_Electrons(HypiC::Electrons_Object Electrons, HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Rate_Table_Object Ionization_Rates, HypiC::Rate_Table_Object Collision_Loss_Rates, HypiC::Options_Object Simulation_Parameters){ //,double t){
         
         //first update the electron mobility and Temperature
         Electrons.Update_Mobility(Simulation_Parameters, Ionization_Rates);
@@ -138,6 +136,7 @@ namespace HypiC{
         Update_Thermal_Conductivity(Electrons,Simulation_Parameters);
 
         Update_Electron_Energy(Electrons,Simulation_Parameters, Collision_Loss_Rates);
+        return Electrons;
     }
 
     void Update_Electron_Energy(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters, HypiC::Rate_Table_Object Loss_Rates){
