@@ -2,32 +2,41 @@
 
 namespace HypiC{
 
-    double Forward_Difference(double f0, double f1, double f2, double x0, double x1, double x2){
+    double Backward_Difference(double f_l, double f_c, double x_l, double x_c){
+        double h = x_c - x_l;
+        return (f_c - f_l) / h;
+        /*
         double h1 = x1 - x0;
         double h2 = x2 - x1;
         double c0 = -(2*h1+h2)/h1/(h1+h2);
         double c1 = (h1+h2)/(h1*h2);
         double c2 = -h1/h2/(h1+h2);
-        return c0 * f0 + c1 * f1 + c2 * f2;
+        return c0 * f0 + c1 * f1 + c2 * f2;*/
     }
 
-    double Central_Difference(double f0, double f1, double f2, double x0, double x1, double x2){
+    double Central_Difference(double f_l, double f_r, double x_l, double x_r){
+        double h = x_r - x_l; //factor of 2 is included b/c we are using full cell centers 
+        return (f_r - f_l) / h;
+        /*
         double h1 = x1 - x0;
         double h2 = x2 - x1;
         double c0 = -h2/h1/(h1+h2);
         double c1 = -(h1+h2)/(h1*h2);
         double c2 = h1/h2/(h1+h2);
-        return c0 * f0 + c1 * f1 + c2 * f2;
+        return c0 * f0 + c1 * f1 + c2 * f2;*/
     }
 
-    double Backward_Difference(double f0, double f1, double f2, double x0, double x1, double x2){
+    double Forward_Difference(double f_c, double f_r, double x_c, double x_r){
+        double h = x_r - x_c;
+        return (f_r - f_c) / h;
+        /*        
         double h1 = x1 - x0;
         double h2 = x2 - x1;
         double c0 = h2/h1/(h1+h2);
         double c1 = -(h1+h2)/(h1*h2);
         double c2 = (h1+2*h2)/h2/(h1+h2);
 
-        return c0 * f0 + c1 * f1 + c2 * f2;
+        return c0 * f0 + c1 * f1 + c2 * f2;*/
     }
 
 

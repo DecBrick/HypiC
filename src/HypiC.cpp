@@ -36,12 +36,22 @@ int main(){
     std::cout << "Objects\n";
     //initial interpolations 
     //interpolate particle densities to electrons
-    HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
+    Electrons = HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
 
     //solve electric field for electrons, add ji to the electrons object
     Electrons.Update_Mobility(Input_Options, Ionization_Rates);
     Electrons.Update_Pressure_Gradient(Input_Options);
+    
+    std::cout << Electrons.Electron_Mobility[5] << "\n";
+    std::cout << Electrons.Plasma_Density_m3[5] << "\n";
+    std::cout << Electrons.Ion_Current_Density[5] << "\n";
+    std::cout << Electrons.Ion_Velocity_m_s[5] << "\n";
+    std::cout << Electrons.Electron_Pressure_Gradient[5] << "\n";
+    std::cout << "Pre Id \n";
+
     double Discharge_Current = HypiC::Integrate_Discharge_Current(Electrons, Input_Options);
+    std::cout << Discharge_Current << "\n";
+
     HypiC::Compute_Electric_Field(Electrons, Input_Options, Discharge_Current); //or whatever the function is
     //interpolate field back to particles
     HypiC::Grid_to_Particles(Neutrals, Ions, Electrons);

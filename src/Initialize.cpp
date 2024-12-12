@@ -42,14 +42,14 @@ namespace HypiC{
 
     double Initial_Electron_Temperature(double z, double Te_Anode, double Te_Cathode, double Te_Max, double Lch, double z_max){
         //from HallThruster.jl 
-        //see https://um-pepl.github.io/HallThruster.jl/dev/initialization/
+        //see https://um-pepl.github.io/HallThruster.jl/dev/explanation/initialization/
         double Te_min = std::min(Te_Anode, Te_Cathode);
         return (1 - (z/z_max)) * Te_Anode + (z/z_max) * Te_Cathode + (Te_Max - Te_min) * exp(-1.0*pow(((3.0*z/Lch) - 3),2));
     };
 
     double Initial_Ion_Bulk_Velocity(double Te_Anode, double Vd, double z, double Lch, double z_max){
         //from HallThruster.jl 
-        //see https://um-pepl.github.io/HallThruster.jl/dev/initialization/
+        //see https://um-pepl.github.io/HallThruster.jl/dev/explanation/initialization/
 
         double u_Bohm = -1 * sqrt(1.6e-19 * Te_Anode / (1.6e-27 * 131.29));//e=1.6e-19 C, mi_Xe = 1.6e-27 (mp) * 131.29 (amu Xe)
         double u_max = sqrt(2 * 1.6e-19 * Vd / (1.6e-27 * 131.29));//e=1.6e-19 C, mi_Xe = 1.6e-27 (mp) * 131.29 (amu Xe)

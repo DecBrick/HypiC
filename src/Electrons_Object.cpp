@@ -66,9 +66,8 @@ namespace HypiC
     }
 
     void Electrons_Object::Set_Velocities(size_t index, double neutral_velocity, double ion_velocity){
-        this->Neutral_Velocity_m_s[index];
-        this->Ion_Velocity_m_s[index];
-        this->Ion_Current_Density[index];
+        this->Neutral_Velocity_m_s[index] = neutral_velocity;
+        this->Ion_Velocity_m_s[index] = ion_velocity;
     }
 
     double Electrons_Object::Get_CellCenter(size_t index){
@@ -134,11 +133,11 @@ namespace HypiC
 
     void Electrons_Object::Update_Pressure_Gradient(HypiC::Options_Object Simulation_Parameters){
         
-        this->Electron_Pressure_Gradient[0] = HypiC::Forward_Difference(this->Electron_Pressure[0],this->Electron_Pressure[1],this->Electron_Pressure[2],this->Cell_Center[0],this->Cell_Center[1],this->Cell_Center[2]);
+        this->Electron_Pressure_Gradient[0] = HypiC::Forward_Difference(this->Electron_Pressure[0],this->Electron_Pressure[1],this->Cell_Center[0],this->Cell_Center[1]);
         for(size_t i=1; i<Simulation_Parameters.nCells-1; ++i){
-            this->Electron_Pressure_Gradient[i] = HypiC::Central_Difference(this->Electron_Pressure[i-1],this->Electron_Pressure[i],this->Electron_Pressure[i+1],this->Cell_Center[i-1],this->Cell_Center[i],this->Cell_Center[i+1]);
+            this->Electron_Pressure_Gradient[i] = HypiC::Central_Difference(this->Electron_Pressure[i-1],this->Electron_Pressure[i+1],this->Cell_Center[i-1],this->Cell_Center[i+1]);
         }
         size_t end = this->Electron_Pressure_Gradient.size() - 1;
-        this->Electron_Pressure_Gradient[end] = HypiC::Backward_Difference(this->Electron_Pressure[end-2],this->Electron_Pressure[end-1],this->Electron_Pressure[end],this->Cell_Center[end-2],this->Cell_Center[end-1],this->Cell_Center[end]);
+        this->Electron_Pressure_Gradient[this->_nElectrons-1] = HypiC::Backward_Difference(this->Electron_Pressure[this->_nElectrons-2],this->Electron_Pressure[this->_nElectrons-1],this->Cell_Center[this->_nElectrons-2],this->Cell_Center[this->_nElectrons-1]);
     }
 }

@@ -1,8 +1,9 @@
 #include <cmath>
+#include <iostream>
 #include "HypiCpp.hpp"
 
 namespace HypiC{
-    void Particles_to_Grid(HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Electrons_Object Electrons){
+    HypiC::Electrons_Object Particles_to_Grid(HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Electrons_Object Electrons){
         // loop over cells
         for(size_t c=0; c<Electrons._nElectrons; ++c){
             double N_den = 0.0;
@@ -11,7 +12,7 @@ namespace HypiC{
             double I_vel = 0.0;
             double J_den = 0.0; // current density
             double dz = Electrons.Grid_Step;
-            double z_cell = 0.5*dz + c*dz;
+            double z_cell = Electrons.Cell_Center[c];
 
             // loop over neutrals
             for(size_t i=0; i<Neutrals._nParticles; ++i){
@@ -24,7 +25,7 @@ namespace HypiC{
                     // weight
                     double w = Neutrals.get_Weight(i);
                     // calculate partial number density
-                    N_den += s*w;
+                    N_den += s*w /dz;
                     // calculaye partial velocity
                     N_vel += s*w*Neutrals.get_Velocity(i);
                 }
@@ -41,18 +42,29 @@ namespace HypiC{
                     // weight
                     double w = Ions.get_Weight(i);
                     // calculate partial number density
-                    P_den += s*w;
+                    P_den += s*w / dz;
                     // calculate partial velocity
                     I_vel += s*Ions.get_Velocity(i);
                     // calculate partial current density
-                    J_den += s*w*Ions.get_Velocity(i);
+                    J_den += s*(w/dz)*Ions.get_Velocity(i);
+                    /*if (c == 5) { 
+                        std::cout << "---------------------\n";
+                        std::cout << i <<"\n";
+                        std::cout << "---------------------\n";
+                        std::cout << Ions.get_Position(i) <<"\n";
+                        std::cout << Ions.get_Weight(i) <<"\n";
+                        std::cout << Ions.get_Velocity(i) <<"\n";
+                    }*/
                 }
             }
 
             // set cell densities and velocities
-            Electrons.Set_Densities(c,N_den,P_den,J_den);
+            Electrons.Set_Densities(c,N_den,P_den,1.602176634e-19 * J_den);
             Electrons.Set_Velocities(c,N_vel,I_vel);
         }
+
+        return Electrons;
+
     }
 
     void Grid_to_Particles(HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Electrons_Object Electrons){
