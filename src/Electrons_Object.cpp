@@ -185,7 +185,7 @@ namespace HypiC
 
     void Electrons_Object::Compute_Electric_Field(HypiC::Options_Object Simulation_Parameters){
         for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
-            double E = ((this->Id / Simulation_Parameters.Channel_Area_m2 - this->Ion_Current_Density[i])/1.602176634e-19/this->Electron_Mobility[i] - this->Electron_Pressure_Gradient[i]/this->EnergyDensity[i]);
+            double E = ((this->Id / Simulation_Parameters.Channel_Area_m2 - this->Ion_Current_Density[i])/1.602176634e-19/this->Electron_Mobility[i]/this->Plasma_Density_m3[i] - this->Electron_Pressure_Gradient[i]/1.602176634e-19/this->Plasma_Density_m3[i]);
             this->Electric_Field_V_m[i] = -E;
         }
     }

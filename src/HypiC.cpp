@@ -42,7 +42,6 @@ int main(){
     Electrons.Update_Pressure_Gradient(Input_Options);
     Electrons.Compute_Discharge_Current(Input_Options);
     Electrons.Compute_Electric_Field(Input_Options); 
-
     std::cout << "Electrons \n";
     //interpolate field back to particles
     Neutrals = HypiC::Grid_to_Particles_Neutrals(Neutrals, Electrons);
@@ -65,6 +64,7 @@ int main(){
     for(size_t i=0; i < Input_Options.nIterations; ++i){
         //update heavy species
         Neutrals = HypiC::Update_Heavy_Species_Neutrals(Neutrals, Ions, Ionization_Rates, Input_Options);
+        std::cout << "Neutrals\n";
         Ions = HypiC::Update_Heavy_Species_Ions(Neutrals, Ions, Ionization_Rates, Input_Options);
         //std::cout << "Ions Updated\n";
         //interpolate

@@ -131,7 +131,6 @@ namespace HypiC{
                 n_reflect += 1;
             }
         }
-        
         //enforce ion boundary conditions
         for (size_t i=n_remove; i>0; --i){
             Ions.Remove_Particle(Remove_These[i-1]);//remove the particle
