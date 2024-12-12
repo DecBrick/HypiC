@@ -7,7 +7,7 @@ namespace HypiC{
         // loop over cells
         for(size_t c=0; c<Electrons._nElectrons; ++c){
             double N_den = 0.0;
-            double N_vel = 0.0;
+            double N_flux = 0.0;
             double P_den = 0.0;
             double I_vel = 0.0;
             double J_den = 0.0; // current density
@@ -18,7 +18,7 @@ namespace HypiC{
             for(size_t i=0; i<Neutrals._nParticles; ++i){
                 // determine if particle is within cell
                 double z_p = Neutrals.get_Position(i);
-                double z_rel = abs( (z_cell - z_p)/dz);
+                double z_rel = abs( (z_cell - z_p)/(dz));
                 if(z_rel < 1){
                     // shape factor
                     double s = 1 - z_rel;
@@ -27,7 +27,7 @@ namespace HypiC{
                     // calculate partial number density
                     N_den += s*w /dz;
                     // calculaye partial velocity
-                    N_vel += s*w*Neutrals.get_Velocity(i);
+                    N_flux += s*(w/dz)*Neutrals.get_Velocity(i);
                 }
             }
 
@@ -35,7 +35,7 @@ namespace HypiC{
             for(size_t i=0; i<Ions._nParticles; ++i){
                 // determine if particle is within cell
                 double z_p = Ions.get_Position(i);
-                double z_rel = abs( (z_cell - z_p)/dz);
+                double z_rel = abs( (z_cell - z_p)/(dz));
                 if(z_rel < 1){
                     // shape factor
                     double s = 1 - z_rel;
@@ -43,8 +43,6 @@ namespace HypiC{
                     double w = Ions.get_Weight(i);
                     // calculate partial number density
                     P_den += s*w / dz;
-                    // calculate partial velocity
-                    I_vel += s*Ions.get_Velocity(i);
                     // calculate partial current density
                     J_den += s*(w/dz)*Ions.get_Velocity(i);
                     /*if (c == 5) { 
@@ -60,7 +58,7 @@ namespace HypiC{
 
             // set cell densities and velocities
             Electrons.Set_Densities(c,N_den,P_den,1.602176634e-19 * J_den);
-            Electrons.Set_Velocities(c,N_vel,I_vel);
+            Electrons.Set_Velocities(c,N_flux / N_den ,J_den / P_den);
         }
 
         return Electrons;
