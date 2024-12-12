@@ -19,7 +19,6 @@ namespace HypiC{
             std::vector<double> Cell_Center;
             std::vector<double> Electron_Pressure;
             std::vector<double> Electron_Pressure_Gradient;
-            std::vector<double> Electron_Kinetic_Energy;
             std::vector<double> Electron_Thermal_Conductivity;
             std::vector<double> Discharge_Current;
             std::vector<double> EnergyDensity;
@@ -47,6 +46,7 @@ namespace HypiC{
             std::vector<double> Ionization_Rate;
 
             double Grid_Step = 0.0;
+            double Id = 0.0;
             size_t _nElectrons = 0;
 
             void Add_Electron(double electron_density, double electron_temp,
@@ -61,6 +61,18 @@ namespace HypiC{
 
             void Update_Mobility(HypiC::Options_Object Simulation_Parameters, HypiC::Rate_Table_Object Ionization_Rates);
 
+            void Update_Velocity(HypiC::Options_Object Simulation_Parameters);
+
             void Update_Pressure_Gradient(HypiC::Options_Object Simulation_Parameters);
+
+            void Update_Thermal_Conductivity(HypiC::Options_Object Simulation_Parameters);
+
+            void Compute_Discharge_Current(HypiC::Options_Object Simulation_Parameters);
+
+            void Compute_Electric_Field(HypiC::Options_Object Simulation_Parameters);
+
+            void Solve_Potential(HypiC::Options_Object Simulation_Parameters);
+
+            void Update_Electron_Energy(HypiC::Options_Object Simulation_Parameters, HypiC::Rate_Table_Object Loss_Rates);
     };
 }

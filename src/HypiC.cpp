@@ -21,9 +21,9 @@ int main(){
     HypiC::Rate_Table_Object Ionization_Rates = HypiC::Rate_Table_Object();
     HypiC::Rate_Table_Object Loss_Rates = HypiC::Rate_Table_Object();
     //this assumes that the build directory is in the same folder as the HypiC directory, should enforce this.
-    std::string file_path1 = "../Reactions/Xe_Ionization_0_to_1.txt";
+    std::string file_path1 = "../HypiC/Reactions/Xe_Ionization_0_to_1.txt";
     Ionization_Rates.Read_Table(file_path1);
-    std::string file_path2 = "../Reactions/Xe_Loss.txt";
+    std::string file_path2 = "../HypiC/Reactions/Xe_Loss.txt";
     Loss_Rates.Read_Table(file_path2);
 
     std::cout << "Reaction Rates Read\n";
@@ -41,12 +41,10 @@ int main(){
     //solve electric field for electrons, add ji to the electrons object
     Electrons.Update_Mobility(Input_Options, Ionization_Rates);
     Electrons.Update_Pressure_Gradient(Input_Options);
-    
+    Electrons.Compute_Discharge_Current(Input_Options);
+    Electrons.Compute_Electric_Field(Input_Options); 
 
-    double Discharge_Current = HypiC::Integrate_Discharge_Current(Electrons, Input_Options);
-    std::cout << Discharge_Current << "\n";
-
-    HypiC::Compute_Electric_Field(Electrons, Input_Options, Discharge_Current); //or whatever the function is
+    std::cout << "Electrons \n";
     //interpolate field back to particles
     Neutrals = HypiC::Grid_to_Particles_Neutrals(Neutrals, Electrons);
     Ions = HypiC::Grid_to_Particles_Ions(Ions, Electrons);
@@ -72,6 +70,7 @@ int main(){
         //Ions = HypiC::Update_Heavy_Species_Ions(Neutrals, Ions, Ionization_Rates, Input_Options);
         //std::cout << "Ions Updated\n";
         //interpolate
+        std::cout << "Updated\n";
         Electrons = HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
 
         //update electrons

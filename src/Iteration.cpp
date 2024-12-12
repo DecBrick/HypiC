@@ -119,177 +119,26 @@ namespace HypiC{
         //then compute pressure gradient
         Electrons.Update_Pressure_Gradient(Simulation_Parameters);
 
-        //Discharge Voltage
-        double Discharge_Current = Integrate_Discharge_Current(Electrons, Simulation_Parameters);
-        //std::cout << Discharge_Current << "\n";
-        //Electron Velocity + Electron Kinetic
-        for(size_t c1=0; c1<Simulation_Parameters.nCells; ++c1){
-            Electrons.Electron_Velocity_m_s[c1] = (Electrons.Ion_Current_Density[c1] - Discharge_Current/Simulation_Parameters.Channel_Area_m2/1.602176634e-19 / Electrons.EnergyDensity[c1]);
-            Electrons.Electron_Kinetic_Energy[c1] = 0.5 * 9.10938356e-31 * (1 + pow(1.602176634e-19*Electrons.Magnetic_Field_T[c1]/9.10938356e-31/Electrons.Freq_Total_Electron_Collision[c1],2)*pow(Electrons.Electron_Velocity_m_s[c1],2)/1.602176634e-19);
-        }
+        //Update discharge current
+        Electrons.Compute_Discharge_Current(Simulation_Parameters);
 
-        //Compute E Field, Potential, Thermal Conductivity, Energy
-        Compute_Electric_Field(Electrons,Simulation_Parameters, Discharge_Current);
+        //Electron Velocity 
+        Electrons.Update_Velocity(Simulation_Parameters);
 
-        Solve_Potential(Electrons,Simulation_Parameters);
+        //Compute E Field, Potential
+        Electrons.Compute_Electric_Field(Simulation_Parameters);
+        Electrons.Solve_Potential(Simulation_Parameters);
         
-        Update_Thermal_Conductivity(Electrons,Simulation_Parameters);
+        //update thermal conductivity and solve for energy
+        Electrons.Update_Thermal_Conductivity(Simulation_Parameters);
+        Electrons.Update_Electron_Energy(Simulation_Parameters, Collision_Loss_Rates);
 
-        Update_Electron_Energy(Electrons,Simulation_Parameters, Collision_Loss_Rates);
+
         return Electrons;
     }
 
-    void Update_Electron_Energy(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters, HypiC::Rate_Table_Object Loss_Rates){
-        std::vector<double> diag(Simulation_Parameters.nCells,1);
-        std::vector<double> diag_low(Simulation_Parameters.nCells-1,1);
-        std::vector<double> diag_up(Simulation_Parameters.nCells-1,1);
-        std::vector<double> B(Simulation_Parameters.nCells,1);
-        std::vector<double> Energy_new;
-        double je_sheath;
-        double T0;
+    
 
-        //setting boundary conditions
-        diag[0] = 1;
-        diag_up[0] = 0;
-        diag[Simulation_Parameters.nCells-1] = 1;
-        diag_low[Simulation_Parameters.nCells-2] = 0;
-
-        //anode neuman for sheath boundary        
-        B[0] = 0;
-        diag[0] = 1/Electrons.EnergyDensity[0];
-        diag_up[0] = -1/Electrons.EnergyDensity[1];
-
-        //cathode boundary condition
-        B[Simulation_Parameters.nCells-1] = 1.5 * Simulation_Parameters.Initial_Cathode_Temperature_eV * Electrons.EnergyDensity[Simulation_Parameters.nCells-1];
-
-        //calculate source terms
-        //there should be a timestep term in here too 
-        std::vector<double> OhmicHeating(Simulation_Parameters.nCells,0);
-        std::vector<double> Collisional_Loss(Simulation_Parameters.nCells,0);
-        std::vector<double> WallPowerLoss(Simulation_Parameters.nCells,0);
-        for(size_t i=0; i<Simulation_Parameters.nCells-1; ++i){ //-1 is b/c we want to fix the Cathode cell using a dirichlet condition 
-            OhmicHeating[i] = -1.602176634e-19 * Electrons.Plasma_Density_m3[i] * Electrons.Electron_Velocity_m_s[i] * Electrons.Electric_Field_V_m[i];
-            Collisional_Loss[i] = Electrons.Plasma_Density_m3[i] * Electrons.Neutral_Density_m3[i] * Loss_Rates.interpolate(Electrons.Electron_Temperature_eV[i]);
-            
-            if (Electrons.Cell_Center[i] <= Simulation_Parameters.Channel_Length_m){
-                WallPowerLoss[i] = 7.5e6 * Electrons.Electron_Temperature_eV[i] * exp( - 40 / (3 *Electrons.Electron_Temperature_eV[i]));
-            } else{
-                WallPowerLoss[i] = 0;
-            }
-            B[i] = OhmicHeating[i] - Electrons.EnergyDensity[i] * WallPowerLoss[i] - Collisional_Loss[i] + Simulation_Parameters.dt * Electrons.EnergyDensity[i]; 
-        }
-
-        //calculate fluxes (setting up linear matrix)
-        /*we have two terms we need to care about here are the convective flux (div 5/3 * flux*energy)
-        and the heat flux (div kappa nabla energy). By applying the divergence theorem we can remove the div to 
-        make the equation only based on the fluxes at the edges
-
-        For the convective flux, use upwinding, which means that we use the value in the same direction as the velocity
-        for 1D, if velocity is positive, use the cell to the left, if negative, use the cell to the right
-        do this for both edges of each cell. Then just need a factor of 5/3*ue for the respective cell's energy density
-
-        For the heat flux, use upwinding for which cell's kappa to apply and then use a central difference scheme to finite
-        difference the gradient in the energy density which adds a geometric factor. 
-        */
-
-        //loop over main body
-        for(size_t i=1; i<Simulation_Parameters.nCells - 1; ++i){
-            if (Electrons.Electron_Velocity_m_s[i] > 0){ 
-                //upwind from 0 to 1 and 1 to 2
-                diag_low[i-1] = (5.0/3.0) * Electrons.Electron_Velocity_m_s[i-1] + Electrons.Electron_Thermal_Conductivity[i-1] / Electrons.Grid_Step;
-                diag[i] = (5.0/3.0) * Electrons.Electron_Velocity_m_s[i] - (Electrons.Electron_Thermal_Conductivity[i-1] - Electrons.Electron_Thermal_Conductivity[i]) / Electrons.Grid_Step;
-                diag_up[i] = -Electrons.Electron_Thermal_Conductivity[i] / Electrons.Grid_Step;
-            } else{
-                //upwind from 1 to 0 and 2 to 1
-                diag_low[i-1] =  Electrons.Electron_Thermal_Conductivity[i] / Electrons.Grid_Step;
-                diag[i] = (5.0/3.0) * Electrons.Electron_Velocity_m_s[i] - (Electrons.Electron_Thermal_Conductivity[i] - Electrons.Electron_Thermal_Conductivity[i+1]) / Electrons.Grid_Step;
-                diag_up[i] = (5.0/3.0) * Electrons.Electron_Velocity_m_s[i+1] -Electrons.Electron_Thermal_Conductivity[i+1] / Electrons.Grid_Step;
-            }
-
-        }
-
-        //apply sheath boundary condition 
-        //neglect heat flux at left edge
-        if (Electrons.Electron_Velocity_m_s[0] > 0){ 
-            //upwind from 1 to 2
-            diag[0] = (5.0/3.0) * Electrons.Electron_Velocity_m_s[0] + Electrons.Electron_Thermal_Conductivity[0] / Electrons.Grid_Step;
-            diag_up[0] = -Electrons.Electron_Thermal_Conductivity[0] / Electrons.Grid_Step;
-        } else{
-            //upwind from 2 to 1
-            diag[0] = Electrons.Electron_Thermal_Conductivity[1] / Electrons.Grid_Step;
-            diag_up[0] = (5.0/3.0) * Electrons.Electron_Velocity_m_s[1] - Electrons.Electron_Thermal_Conductivity[1] / Electrons.Grid_Step;
-        }
-
-        //handle the left edge
-        T0 = (2.0/3.0) * Electrons.EnergyDensity[0] / Electrons.Plasma_Density_m3[0];
-        je_sheath = (Integrate_Discharge_Current(Electrons, Simulation_Parameters) / Simulation_Parameters.Channel_Area_m2) - Electrons.Ion_Current_Density[0];
-        //the back term (1-log) of this is the sheath potential 
-        diag[0] = (4.0/3.0) * je_sheath / (-1.602176634e-19 * Electrons.Plasma_Density_m3[0]) * (1.0 - log(std::min(1.0, je_sheath / (1.602176634e-19 * Electrons.Plasma_Density_m3[0] * sqrt(8 * 1.602176634e-19 * T0/ (M_PI * 9.10938356e-31)) / 4))));
-
-        //call matrix solver, might want to use Thomas https://www.quantstart.com/articles/Tridiagonal-Matrix-Algorithm-Thomas-Algorithm-in-C/
-        Energy_new = HypiC::Thomas_Algorithm(diag_low, diag, diag_up, B);
-
-        //limit to a minimum temperature and assign
-        for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
-            Electrons.EnergyDensity[i] = std::max(Energy_new[i], 1.5 * Electrons.Plasma_Density_m3[i] * Simulation_Parameters.Min_Electron_Temperature_eV);
-        }
-    }
-
-    void Solve_Potential(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters){
-        Electrons.Potential[0] = Simulation_Parameters.Discharge_Voltage_V;
-
-        for(size_t i=1; i<Simulation_Parameters.nCells; ++i){
-            double dx = Electrons.Cell_Center[i] - Electrons.Cell_Center[i-1];
-            Electrons.Potential[i] = Electrons.Potential[i-1] + 0.5 * dx * (Electrons.Electric_Field_V_m[i] + Electrons.Electric_Field_V_m[i-1]);
-        }
-    }
-
-    void Compute_Electric_Field(HypiC::Electrons_Object Electrons,HypiC::Options_Object Simulation_Parameters, double Discharge_Current){
-        for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
-            double E = ((Discharge_Current / Simulation_Parameters.Channel_Area_m2 - Electrons.Ion_Current_Density[i])/1.602176634e-19/Electrons.Electron_Mobility[i] - Electrons.Electron_Pressure_Gradient[i]/Electrons.EnergyDensity[i]);
-            Electrons.Electric_Field_V_m[i] = -E;
-        }
-    }
-
-    void Update_Thermal_Conductivity(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters){
-        for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
-            Electrons.Electron_Thermal_Conductivity[i] = (10.0 / (9.0 * 1.602176634e-19)) * Electrons.Electron_Mobility[i] * Electrons.Plasma_Density_m3[i] * Electrons.EnergyDensity[i];
-        }
-    }
-
-
-    double Integrate_Discharge_Current(HypiC::Electrons_Object Electrons, HypiC::Options_Object Simulation_Parameters){
-        double int1 = 0;
-        double int2 = 0;
-        double Dz = Simulation_Parameters.Domain_Length_m / Simulation_Parameters.nCells;
-        double dz;
-        double int1_1;
-        double int1_2;
-        double int2_1;
-        double int2_2;
-        double enemu1;
-        double enemu2;
-
-        for (size_t c=0; c<Simulation_Parameters.nCells-1; ++c){
-            //dz = Dz * c;
-            enemu1 = 1.602176634e-19 * Electrons.Plasma_Density_m3[c] * Electrons.Electron_Mobility[c];
-            enemu2 = 1.602176634e-19 * Electrons.Plasma_Density_m3[c+1] * Electrons.Electron_Mobility[c+1];
-            int1_1 = (Electrons.Ion_Current_Density[c]/enemu1 + Electrons.Electron_Pressure_Gradient[c]/Electrons.Plasma_Density_m3[c]/1.602176634e-19 );
-            int1_2 = (Electrons.Ion_Current_Density[c+1]/enemu2 + Electrons.Electron_Pressure_Gradient[c+1]/Electrons.Plasma_Density_m3[c+1]/1.602176634e-19);
-
-            int1 += 0.5 * Dz * (int1_1 + int1_2);
-
-            //the area is only correct within the channel, need to add plume area model
-            int2_1 = 1/(enemu1*Simulation_Parameters.Channel_Area_m2);
-            int2_2 = 1/(enemu2*Simulation_Parameters.Channel_Area_m2);
-
-            int2 += 0.5 * Dz * (int2_1 + int2_2);
-
-        }
-
-        double Discharge_Current = (Simulation_Parameters.Discharge_Voltage_V + int1)/int2;
-        return Discharge_Current;
-    }
     
     //double Freq_Electron_Ion(double EnergyDensity, double ElectronTemp, double IonZ){
     //    return 2.9e-12 * pow(IonZ,2) * EnergyDensity * Coulomb_Logarithm(EnergyDensity, ElectronTemp, IonZ) / sqrt(pow(ElectronTemp,3));
