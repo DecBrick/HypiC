@@ -42,8 +42,6 @@ int main(){
     Electrons.Update_Pressure_Gradient(Input_Options);
     
 
-    std::cout << "Pre Id \n";
-
     double Discharge_Current = HypiC::Integrate_Discharge_Current(Electrons, Input_Options);
     std::cout << Discharge_Current << "\n";
 

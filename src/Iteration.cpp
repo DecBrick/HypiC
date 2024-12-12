@@ -317,30 +317,18 @@ namespace HypiC{
             //dz = Dz * c;
             enemu1 = 1.602176634e-19 * Electrons.Plasma_Density_m3[c] * Electrons.Electron_Mobility[c];
             enemu2 = 1.602176634e-19 * Electrons.Plasma_Density_m3[c+1] * Electrons.Electron_Mobility[c+1];
-            /*
-            std::cout << "enemu1: " << enemu1 << "\n";
-            std::cout << "enemu2: " << enemu2 << "\n";
-            std::cout << "density1: " << Electrons.Plasma_Density_m3[c] << "\n";
-            std::cout << "density2: " << Electrons.Plasma_Density_m3[c+1] << "\n";
-            std::cout << "gradPe1: " << Electrons.Electron_Pressure_Gradient[c] << "\n";
-            std::cout << "gradPe2: " << Electrons.Electron_Pressure_Gradient[c+1] << "\n";
-            */
             int1_1 = (Electrons.Ion_Current_Density[c]/enemu1 + Electrons.Electron_Pressure_Gradient[c]/Electrons.Plasma_Density_m3[c]/1.602176634e-19 );
             int1_2 = (Electrons.Ion_Current_Density[c+1]/enemu2 + Electrons.Electron_Pressure_Gradient[c+1]/Electrons.Plasma_Density_m3[c+1]/1.602176634e-19);
 
             int1 += 0.5 * Dz * (int1_1 + int1_2);
 
             //the area is only correct within the channel, need to add plume area model
-            int2_1 = enemu1*Simulation_Parameters.Channel_Area_m2;
-            int2_2 = enemu2*Simulation_Parameters.Channel_Area_m2;
+            int2_1 = 1/(enemu1*Simulation_Parameters.Channel_Area_m2);
+            int2_2 = 1/(enemu2*Simulation_Parameters.Channel_Area_m2);
 
             int2 += 0.5 * Dz * (int2_1 + int2_2);
 
         }
-
-        std::cout << Simulation_Parameters.Discharge_Voltage_V << "\n";
-        std::cout << int1 << "\n";
-        std::cout << int2 << "\n";
 
         double Discharge_Current = (Simulation_Parameters.Discharge_Voltage_V + int1)/int2;
         return Discharge_Current;
