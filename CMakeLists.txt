@@ -52,6 +52,12 @@ target_compile_options(HypiC PRIVATE "-march=native")
 
 target_link_libraries(HypiC PUBLIC HypiC_Sources)
 
+# OpenMP
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(HypiC PUBLIC OpenMP::OpenMP_CXX)
+endif()
+
 #===============================================================================
 # Other directories
 #===============================================================================
