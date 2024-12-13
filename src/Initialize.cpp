@@ -16,9 +16,9 @@ namespace HypiC{
     double Initial_Magnetic_Field(double B_max, double Lch, double z){
         double B;
         if (z < Lch){
-            B = B_max * exp(-0.5 * pow(((z-Lch)/0.011),2));
+            B = B_max * exp(-0.5 * pow(((z-Lch)/0.011),2.0));
         } else {
-            B = B_max * exp(-0.5 * pow(((z-Lch)/0.018),2));
+            B = B_max * exp(-0.5 * pow(((z-Lch)/0.018),2.0));
         }
         return B;
     }
@@ -26,7 +26,7 @@ namespace HypiC{
     double Initial_Electron_Density(double z, double n_min, double n_max, double Vd, double mdot, double Lch){
         //from HallThruster.jl 
         //see https://um-pepl.github.io/HallThruster.jl/dev/initialization/
-        return  sqrt(Vd/300) * (mdot / 5e-6) * (n_min + (n_max - n_min)*exp(-1.0*pow(((3.0*z/Lch) - 1.5),2)));
+        return  sqrt(Vd/300) * (mdot / 5e-6) * (n_min + (n_max - n_min)*exp(-1.0*pow(((3.0*z/Lch) - 1.5),2.0)));
     };
 
     double Initial_Neutral_Density(double z, double mass, double un, double mdot, double Lch, double Ach){
@@ -37,27 +37,27 @@ namespace HypiC{
         n_cathode = 0.01 * n_anode;
         //from HallThruster.jl 
         //see https://um-pepl.github.io/HallThruster.jl/dev/initialization/
-        return 0.5 * (n_anode + n_cathode + (n_anode - n_cathode) * tanh((z - 0.5 * Lch)/(Lch / 6)));
+        return 0.5 * (n_anode + n_cathode + (n_anode - n_cathode) * tanh((z - 0.5 * Lch)/(Lch / 6.0)));
     };
 
     double Initial_Electron_Temperature(double z, double Te_Anode, double Te_Cathode, double Te_Max, double Lch, double z_max){
         //from HallThruster.jl 
         //see https://um-pepl.github.io/HallThruster.jl/dev/explanation/initialization/
         double Te_min = std::min(Te_Anode, Te_Cathode);
-        return (1 - (z/z_max)) * Te_Anode + (z/z_max) * Te_Cathode + (Te_Max - Te_min) * exp(-1.0*pow(((3.0*z/Lch) - 3),2));
+        return (1 - (z/z_max)) * Te_Anode + (z/z_max) * Te_Cathode + (Te_Max - Te_min) * exp(-1.0*pow(((3.0*z/Lch) - 3.0),2.0));
     };
 
     double Initial_Ion_Bulk_Velocity(double Te_Anode, double Vd, double z, double Lch, double z_max){
         //from HallThruster.jl 
         //see https://um-pepl.github.io/HallThruster.jl/dev/explanation/initialization/
 
-        double u_Bohm = -1 * sqrt(1.6e-19 * Te_Anode / (1.6e-27 * 131.29));//e=1.6e-19 C, mi_Xe = 1.6e-27 (mp) * 131.29 (amu Xe)
+        double u_Bohm = sqrt(1.6e-19 * Te_Anode / (1.6e-27 * 131.29));//e=1.6e-19 C, mi_Xe = 1.6e-27 (mp) * 131.29 (amu Xe)
         double u_max = sqrt(2 * 1.6e-19 * Vd / (1.6e-27 * 131.29));//e=1.6e-19 C, mi_Xe = 1.6e-27 (mp) * 131.29 (amu Xe)
         
         if (z<Lch){
-            return u_Bohm + (2/3*(u_max - u_Bohm))*pow(z/Lch,2);
+            return u_Bohm + (2.0/3.0*(u_max - u_Bohm))*pow(z/Lch,2.0);
         } else{
-            return (2* u_max / 3 + u_Bohm / 3)*(1-(z-Lch)/(z_max-Lch)) + u_max * ((z-Lch)/(z_max-Lch));
+            return (2* u_max / 3.0 + u_Bohm / 3.0)*(1-(z-Lch)/(z_max-Lch)) + u_max * ((z-Lch)/(z_max-Lch));
         } 
     };
 
@@ -109,7 +109,7 @@ namespace HypiC{
                 Inputs.Channel_Length_m, Inputs.Domain_Length_m);
                 //calculate initial velocity
                 //sample from maxwellian
-                un = sqrt(2 * kb * Inputs.Initial_Neutral_Temperature_K / (M_PI * mass));
+                un = sqrt(2.0 * kb * Inputs.Initial_Neutral_Temperature_K / (M_PI * mass));
                 v = HypiC::Maxwellian_Sampler(un,sqrt(kb * Inputs.Initial_Neutral_Temperature_K / mass));
                 //calculate initial weight
                 //see https://smileipic.github.io/Smilei/Understand/algorithms.html
@@ -119,7 +119,7 @@ namespace HypiC{
                 w = (nn / Particles_per_cell) * dz;
 
                 //Add the particle
-                Neutrals.Add_Particle(z_particle, v, w, 0, ne, Te);
+                Neutrals.Add_Particle(z_particle, v, w, 0.0, ne, Te);
             }
         }
 

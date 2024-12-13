@@ -113,7 +113,7 @@ namespace HypiC
         //for each cell
         for (size_t i = 0; i < this->_nElectrons; ++i){
             if (this->Plasma_Density_m3[i] <= 0){
-                std::cout << "Say Something\n";
+                //std::cout << "Say Something\n";
             }
             //divide neutral flux sum by total density
             this->Neutral_Velocity_m_s[i] /= this->Neutral_Density_m3[i];
@@ -134,7 +134,7 @@ namespace HypiC
             if(Electron_Temperature_eV[c] > 200){
                 std::cout << c << "\n";
                 std::cout << Electron_Temperature_eV[c] << "\n";
-                throw std::invalid_argument("Temperature too high");
+                //throw std::invalid_argument("Temperature too high");
             }
             //P = n * e * T
             this->Electron_Pressure[c] =  (2.0/3.0) * 1.602176634e-19 * this->EnergyDensity[c];
@@ -229,7 +229,7 @@ namespace HypiC
     void Electrons_Object::Compute_Electric_Field(HypiC::Options_Object Simulation_Parameters){
         for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
             double E = ((this->Id / Simulation_Parameters.Channel_Area_m2 - this->Ion_Current_Density[i])/1.602176634e-19/this->Electron_Mobility[i]/this->Plasma_Density_m3[i] - this->Electron_Pressure_Gradient[i]/1.602176634e-19/this->Plasma_Density_m3[i]);
-            this->Electric_Field_V_m[i] = -E;
+            this->Electric_Field_V_m[i] = E;
         }
     }
 
@@ -238,7 +238,7 @@ namespace HypiC
 
         for(size_t i=1; i<Simulation_Parameters.nCells; ++i){
             double dx = this->Cell_Center[i] - this->Cell_Center[i-1];
-            this->Potential[i] = this->Potential[i-1] + 0.5 * dx * (this->Electric_Field_V_m[i] + this->Electric_Field_V_m[i-1]);
+            this->Potential[i] = this->Potential[i-1] - 0.5 * dx * (this->Electric_Field_V_m[i] + this->Electric_Field_V_m[i-1]);
         }
     }
 
