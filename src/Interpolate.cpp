@@ -6,30 +6,34 @@ namespace HypiC{
     HypiC::Electrons_Object Particles_to_Grid(HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Electrons_Object Electrons){
         // remove previous particle data to start summations at 0.0
         Electrons.Clear_Out_Particles(Neutrals._nParticles,Ions._nParticles);
-        
         double dz = Electrons.Grid_Step;
         // loop over neutrals
+        
         for(size_t i=0; i<Neutrals._nParticles; ++i){
             double z_p = Neutrals.get_Position(i);
-
+            
             // loop over cells
             for(size_t c=0; c<Electrons._nElectrons; ++c){
                 // determine if particle is within cell
                 double z_cell = Electrons.Get_CellCenter(c);
                 double z_rel = fabs( (z_cell - z_p)/dz);
+                
                 if(z_rel < 1){
                     // shape factor (s for next cell = z_rel)
                     double s = 1 - z_rel;
                     // weight
                     double w = Neutrals.get_Weight(i);
+        
                     // calculate partial neutral density for this cell and next
                     double N_den = s*w /dz;
                     double N_den_next = z_rel*w/dz;
                     // calculate partial neutral flux for this cell and next
                     double N_flux = s*(w/dz)*Neutrals.get_Velocity(i);
                     double N_flux_next = z_rel*(w/dz)*Neutrals.get_Velocity(i);
+
                     // add values to cells' summations
                     Electrons.Update_From_Neutrals(c,N_den,N_den_next,N_flux/N_den,N_flux_next/N_den_next);
+
                     break;
                 }
             }

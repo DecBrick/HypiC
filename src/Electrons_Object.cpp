@@ -93,13 +93,13 @@ namespace HypiC
         this->Ion_Current_Density.clear();
         this->Ion_Current_Density.resize(nIons, 0.0);
         this->Neutral_Velocity_m_s.clear();
-        this->Neutral_Density_m3.resize(nNeutrals, 0.0);
+        this->Neutral_Velocity_m_s.resize(nNeutrals, 0.0);
         this->Ion_Velocity_m_s.clear();
         this->Ion_Velocity_m_s.resize(nIons, 0.0);
     }
 
-    void Electrons_Object::Update_From_Neutrals(size_t index, double neutral_density, double neutral_density_next, double neutral_velocity, double neutral_velocity_next){
-        this->Neutral_Density_m3[index] += neutral_density;
+    void Electrons_Object::Update_From_Neutrals(size_t index, double neutral_density, double neutral_density_next, double neutral_velocity, double neutral_velocity_next){ 
+        this->Neutral_Density_m3[index] += neutral_density;        
         this->Neutral_Density_m3[index+1] += neutral_density_next;
         this->Neutral_Velocity_m_s[index] += neutral_velocity;
         this->Neutral_Velocity_m_s[index+1] += neutral_velocity_next;

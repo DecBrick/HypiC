@@ -67,6 +67,7 @@ int main(){
         //update heavy species
         Neutrals = HypiC::Update_Heavy_Species_Neutrals(Neutrals, Ions, Ionization_Rates, Input_Options);
         Ions = HypiC::Update_Heavy_Species_Ions(Neutrals, Ions, Ionization_Rates, Input_Options);
+        
         //interpolate
         double max_z = 0.0;
 
