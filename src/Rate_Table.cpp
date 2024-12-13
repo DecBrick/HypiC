@@ -67,7 +67,7 @@ namespace HypiC{
         }
 
         //compare index by index to find left (assumes sorted)
-        for (size_t i = 0; i < this->_nEntries; ++i){
+        for (size_t i = 1; i < this->_nEntries; ++i){
             if (TeV <= this->_Energies[i]){
                 m = (this->_Rates[i] - this->_Rates[i-1]) / (this->_Energies[i] - this->_Energies[i-1]);
                 return m * (TeV - this->_Energies[i-1]) + this->_Rates[i-1];

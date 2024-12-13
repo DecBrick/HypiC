@@ -9,6 +9,10 @@ TEST_CASE(Constructor){
     //make the instance 
     //HypiC::Rate_Table_Object<double> Test_Table = HypiC::Rate_Table_Object<double>();
     HypiC::Rate_Table_Object Test_Table = HypiC::Rate_Table_Object();
+
+    ASSERT(Test_Table._nEntries == 0);
+    ASSERT(Test_Table._Energies.empty());
+    ASSERT(Test_Table._Rates.empty());
 }
 //reading the ionization cross sections
 TEST_CASE(Xe_Single_Ionization_Read){
