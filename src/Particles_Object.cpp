@@ -71,7 +71,7 @@ namespace HypiC
         this->_Positions[index]+= this->_Velocities[index] * dt;
 
         //update the weights
-        rate_coefficient = Single_Ionization_Table.interpolate(this->_ElectronTemperature[index]);
+        rate_coefficient = Single_Ionization_Table.interpolate(1.5 * this->_ElectronTemperature[index]);
         this->_Weights[index] *= exp(this->_IonizationDirection * this->_ElectronDensity[index] * rate_coefficient * dt);
     }
 

@@ -1,7 +1,7 @@
 #include <iostream> 
 #include <cmath>//for exp
 #include "Electrons_Object.hpp"
-
+#include <stdexcept>
 namespace HypiC
 {
 
@@ -112,6 +112,9 @@ namespace HypiC
     void Electrons_Object::Normalize_Velocities(){
         //for each cell
         for (size_t i = 0; i < this->_nElectrons; ++i){
+            if (this->Plasma_Density_m3[i] <= 0){
+                std::cout << "Say Something\n";
+            }
             //divide neutral flux sum by total density
             this->Neutral_Velocity_m_s[i] /= this->Neutral_Density_m3[i];
             //divide ion flux sum by total density
@@ -128,6 +131,11 @@ namespace HypiC
         
         for(size_t c=0; c<this->_nElectrons; ++c){
             this->Electron_Temperature_eV[c] = (2.0/3.0) * this->EnergyDensity[c] /this->Plasma_Density_m3[c];
+            if(Electron_Temperature_eV[c] > 200){
+                std::cout << c << "\n";
+                std::cout << Electron_Temperature_eV[c] << "\n";
+                throw std::invalid_argument("Temperature too high");
+            }
             //P = n * e * T
             this->Electron_Pressure[c] =  (2.0/3.0) * 1.602176634e-19 * this->EnergyDensity[c];
 
@@ -141,7 +149,7 @@ namespace HypiC
                 this->Freq_Electron_Wall_Collision[c] = 1e7 ;
             }
             //update the ionization rate
-            this->Ionization_Rate[c] = Ionization_Rates.interpolate(this->Electron_Temperature_eV[c]);
+            this->Ionization_Rate[c] = Ionization_Rates.interpolate(1.5 * this->Electron_Temperature_eV[c]);
             //update the anomalous frequency 
             Elec_Cycl_Freq = 1.602176634e-19 * this->Magnetic_Field_T[c] / 9.10938356e-31;
 
@@ -182,7 +190,7 @@ namespace HypiC
 
     void Electrons_Object::Update_Thermal_Conductivity(HypiC::Options_Object Simulation_Parameters){
         for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
-            this->Electron_Thermal_Conductivity[i] = (10.0 / (9.0 * 1.602176634e-19)) * this->Electron_Mobility[i] * this->Plasma_Density_m3[i] * this->EnergyDensity[i];
+            this->Electron_Thermal_Conductivity[i] = (10.0 / (9.0)) * this->Electron_Mobility[i] * this->EnergyDensity[i];
         }
     }
 
@@ -211,20 +219,9 @@ namespace HypiC
             int2_1 = 1/(enemu1*Simulation_Parameters.Channel_Area_m2);
             int2_2 = 1/(enemu2*Simulation_Parameters.Channel_Area_m2);
 
-
-            /*std::cout << "--------------------\n";
-            std::cout << c << "\n";
-            std::cout << int2_1 << "\n";
-            std::cout << int2_2 << "\n";*/
-
             int2 += 0.5 * Dz * (int2_1 + int2_2);
 
         }
-
-        /*std::cout << this->Plasma_Density_m3[198] << "\n";
-        std::cout << this->Electron_Mobility[198] << "\n";
-        std::cout << int1 << "\n";
-        std::cout << int2 << "\n";*/
 
         this->Id = (Simulation_Parameters.Discharge_Voltage_V + int1)/int2;
     }
@@ -261,30 +258,32 @@ namespace HypiC
         diag_low[Simulation_Parameters.nCells-2] = 0;
 
         //anode neuman for sheath boundary        
-        B[0] = 0;
+        /*B[0] = 0;
         diag[0] = 1/this->EnergyDensity[0];
-        diag_up[0] = -1/this->EnergyDensity[1];
+        diag_up[0] = -1/this->EnergyDensity[1];*/
 
+        //anode boundary condition 
+        B[0] = 1.5 * Simulation_Parameters.Initial_Anode_Temperature_eV * this->Plasma_Density_m3[0];
         //cathode boundary condition
-        B[Simulation_Parameters.nCells-1] = 1.5 * Simulation_Parameters.Initial_Cathode_Temperature_eV * this->EnergyDensity[Simulation_Parameters.nCells-1];
+        B[Simulation_Parameters.nCells-1] = 1.5 * Simulation_Parameters.Initial_Cathode_Temperature_eV * this->Plasma_Density_m3[Simulation_Parameters.nCells-1];
 
         //calculate source terms
         //there should be a timestep term in here too 
         std::vector<double> OhmicHeating(Simulation_Parameters.nCells,0);
         std::vector<double> Collisional_Loss(Simulation_Parameters.nCells,0);
         std::vector<double> WallPowerLoss(Simulation_Parameters.nCells,0);
-        for(size_t i=0; i<Simulation_Parameters.nCells-1; ++i){ //-1 is b/c we want to fix the Cathode cell using a dirichlet condition 
-            OhmicHeating[i] = -1.602176634e-19 * this->Plasma_Density_m3[i] * this->Electron_Velocity_m_s[i] * this->Electric_Field_V_m[i];
-            Collisional_Loss[i] = this->Plasma_Density_m3[i] * this->Neutral_Density_m3[i] * Loss_Rates.interpolate(this->Electron_Temperature_eV[i]);
+        for(size_t i=1; i<Simulation_Parameters.nCells-1; ++i){ //set limits to disclude anode and cathode  
+            OhmicHeating[i] = this->Plasma_Density_m3[i] * this->Electron_Velocity_m_s[i] * this->Electric_Field_V_m[i];
+            Collisional_Loss[i] = this->Plasma_Density_m3[i] * this->Neutral_Density_m3[i] * Loss_Rates.interpolate(1.5 * this->Electron_Temperature_eV[i]);
             
             if (this->Cell_Center[i] <= Simulation_Parameters.Channel_Length_m){
                 WallPowerLoss[i] = 7.5e6 * this->Electron_Temperature_eV[i] * exp( - 40 / (3 *this->Electron_Temperature_eV[i]));
             } else{
-                WallPowerLoss[i] = 0;
+                WallPowerLoss[i] = 1.5e7 * this->Electron_Temperature_eV[i] * exp( - 40 / (3 *this->Electron_Temperature_eV[i]));
             }
-            B[i] = OhmicHeating[i] - this->EnergyDensity[i] * WallPowerLoss[i] - Collisional_Loss[i] + Simulation_Parameters.dt * this->EnergyDensity[i]; 
+            B[i] = Simulation_Parameters.dt * (OhmicHeating[i] - this->Plasma_Density_m3[i] * WallPowerLoss[i] - Collisional_Loss[i]) + this->EnergyDensity[i]; 
         }
-
+        
         //calculate fluxes (setting up linear matrix)
         /*we have two terms we need to care about here are the convective flux (div 5/3 * flux*energy)
         and the heat flux (div kappa nabla energy). By applying the divergence theorem we can remove the div to 
@@ -300,23 +299,27 @@ namespace HypiC
 
         //loop over main body
         for(size_t i=1; i<Simulation_Parameters.nCells - 1; ++i){
-            if (this->Electron_Velocity_m_s[i] > 0){ 
+            if (this->Electron_Velocity_m_s[i] > 0){
                 //upwind from 0 to 1 and 1 to 2
-                diag_low[i-1] = (5.0/3.0) * this->Electron_Velocity_m_s[i-1] + this->Electron_Thermal_Conductivity[i-1] / this->Grid_Step;
-                diag[i] = (5.0/3.0) * this->Electron_Velocity_m_s[i] - (this->Electron_Thermal_Conductivity[i-1] - this->Electron_Thermal_Conductivity[i]) / this->Grid_Step;
+                diag_low[i-1] = (-5.0/3.0) * this->Electron_Velocity_m_s[i-1] - this->Electron_Thermal_Conductivity[i-1] / this->Grid_Step;
+                diag[i] = 1 + (5.0/3.0) * this->Electron_Velocity_m_s[i] + (this->Electron_Thermal_Conductivity[i-1] + this->Electron_Thermal_Conductivity[i]) / this->Grid_Step;
                 diag_up[i] = -this->Electron_Thermal_Conductivity[i] / this->Grid_Step;
             } else{
                 //upwind from 1 to 0 and 2 to 1
-                diag_low[i-1] =  this->Electron_Thermal_Conductivity[i] / this->Grid_Step;
-                diag[i] = (5.0/3.0) * this->Electron_Velocity_m_s[i] - (this->Electron_Thermal_Conductivity[i] - this->Electron_Thermal_Conductivity[i+1]) / this->Grid_Step;
+                diag_low[i-1] =  -1.0 * this->Electron_Thermal_Conductivity[i] / this->Grid_Step;
+                diag[i] = 1 + (-5.0/3.0) * this->Electron_Velocity_m_s[i] + (this->Electron_Thermal_Conductivity[i] + this->Electron_Thermal_Conductivity[i+1] ) / this->Grid_Step;
                 diag_up[i] = (5.0/3.0) * this->Electron_Velocity_m_s[i+1] -this->Electron_Thermal_Conductivity[i+1] / this->Grid_Step;
             }
+            diag_low[i-1] *= Simulation_Parameters.dt / this->Grid_Step;
+            diag[i] *= Simulation_Parameters.dt / this->Grid_Step;
+            diag_up[i] *= Simulation_Parameters.dt / this->Grid_Step;
+            
 
         }
 
         //apply sheath boundary condition 
         //neglect heat flux at left edge
-        if (this->Electron_Velocity_m_s[0] > 0){ 
+        /*if (this->Electron_Velocity_m_s[0] > 0){ 
             //upwind from 1 to 2
             diag[0] = (5.0/3.0) * this->Electron_Velocity_m_s[0] + this->Electron_Thermal_Conductivity[0] / this->Grid_Step;
             diag_up[0] = -this->Electron_Thermal_Conductivity[0] / this->Grid_Step;
@@ -331,6 +334,8 @@ namespace HypiC
         je_sheath = (this->Id / Simulation_Parameters.Channel_Area_m2) - this->Ion_Current_Density[0];
         //the back term (1-log) of this is the sheath potential 
         diag[0] = (4.0/3.0) * je_sheath / (-1.602176634e-19 * this->Plasma_Density_m3[0]) * (1.0 - log(std::min(1.0, je_sheath / (1.602176634e-19 * this->Plasma_Density_m3[0] * sqrt(8 * 1.602176634e-19 * T0/ (M_PI * 9.10938356e-31)) / 4))));
+        */
+
 
         //call matrix solver, might want to use Thomas https://www.quantstart.com/articles/Tridiagonal-Matrix-Algorithm-Thomas-Algorithm-in-C/
         Energy_new = HypiC::Thomas_Algorithm(diag_low, diag, diag_up, B);
