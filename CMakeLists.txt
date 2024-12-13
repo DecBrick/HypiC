@@ -48,6 +48,7 @@ add_subdirectory(src)
 
 # Add the executable
 add_executable(HypiC "${CMAKE_SOURCE_DIR}/src/HypiC.cpp")
+target_compile_options(HypiC PRIVATE "-march=native")
 
 target_link_libraries(HypiC PUBLIC HypiC_Sources)
 
