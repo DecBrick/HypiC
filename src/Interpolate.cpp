@@ -99,9 +99,14 @@ namespace HypiC{
                     // shape factor (s for next cell = z_rel)
                     double s = 1 - z_rel;
                     // calculate partial electron density from this cell and next
-                    e_den = s*Electrons.Get_PlasmaDensity(c) + z_rel*Electrons.Get_PlasmaDensity(c+1);
+                    e_den = s*Electrons.Get_PlasmaDensity(c);
                     // calculate partial electron temperature from this cell and next
-                    e_tmp = s*Electrons.Get_ElectronTemperature(c) + z_rel*Electrons.Get_ElectronTemperature(c+1);
+                    e_tmp = s*Electrons.Get_ElectronTemperature(c);
+                    // add next cell contribution for all but last cell
+                    if(c!=Electrons._nElectrons){
+                        e_den += z_rel*Electrons.Get_PlasmaDensity(c+1);
+                        e_tmp += z_rel*Electrons.Get_ElectronTemperature(c+1);
+                    }
                     break;
                 }
             }
@@ -131,11 +136,17 @@ namespace HypiC{
                     // shape factor (s for next cell = z_rel)
                     double s = 1 - z_rel;
                     // calculate partial electron density from this cell and next
-                    e_den = s*Electrons.Get_PlasmaDensity(c) + z_rel*Electrons.Get_PlasmaDensity(c+1);
+                    e_den = s*Electrons.Get_PlasmaDensity(c);
                     // calculate partial electron temperature from this cell and next
-                    e_tmp = s*Electrons.Get_ElectronTemperature(c) + z_rel*Electrons.Get_ElectronTemperature(c+1);
+                    e_tmp = s*Electrons.Get_ElectronTemperature(c);
                     // calculate partial electric field from this cell and next
-                    E_fld = s*Electrons.Get_ElectricField(c) + z_rel*Electrons.Get_ElectricField(c+1);
+                    E_fld = s*Electrons.Get_ElectricField(c);
+                    // add next cell contribution for all but last cell
+                    if(c!=Electrons._nElectrons){
+                        e_den += z_rel*Electrons.Get_PlasmaDensity(c+1);
+                        e_tmp += z_rel*Electrons.Get_ElectronTemperature(c+1);
+                        E_fld += z_rel*Electrons.Get_ElectricField(c+1);
+                    }
                     break;
                 }
             }
