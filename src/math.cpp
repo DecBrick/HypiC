@@ -1,4 +1,5 @@
 #include "math.hpp"
+#include <iostream>
 
 namespace HypiC{
 
@@ -73,8 +74,7 @@ namespace HypiC{
 
         //back substitution 
         x[n-1] = b[n-1] / diagonal[n-1];
-        int jj = n-2;
-        for (size_t i = n-2; i-- > 0; ){
+        for (int i = n-2; i >= 0; --i){
             x[i] = (b[i] - upper_diagonal[i] * x[i+1]) / diagonal[i];
         }
         

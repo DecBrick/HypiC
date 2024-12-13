@@ -1,62 +1,58 @@
 #include "HypiCpp.hpp"
 #include <string>
+#include <vector>
 
 //testing library
 #include "unit_test_framework.hpp"
 
+double Tolerance = 1e-12;
 
-TEST_CASE(Constructor){
-    //make the instance 
-    //HypiC::Rate_Table_Object<double> Test_Table = HypiC::Rate_Table_Object<double>();
-    HypiC::Rate_Table_Object Test_Table = HypiC::Rate_Table_Object();
-}
-//reading the ionization cross sections
-TEST_CASE(Xe_Single_Ionization_Read){
-    //make the instance 
-    //HypiC::Rate_Table_Object<double> Test_Table = HypiC::Rate_Table_Object<double>();
-    HypiC::Rate_Table_Object Test_Table = HypiC::Rate_Table_Object();
+TEST_CASE(Thomas_Algorithm){
+    std::vector<double> ld;
+    std::vector<double> d;
+    std::vector<double> ud;
+    std::vector<double> B; 
+    std::vector<double> x; 
 
-    //call the read file
-    //this assumes that the build directory is in the same folder as the HypiC directory, should enforce this.
-    std::string file_path = "../Reactions/Xe_Ionization_0_to_1.txt";
-    Test_Table.Read_Table(file_path);
-    
-    //test that file was read correctly
-    //check first and last energy
-    ASSERT_NEAR(Test_Table._Energies[0], 0, 1e-12);
-    ASSERT_NEAR(Test_Table._Energies[150], 150, 1e-12);
-    //check first and last rate
-    ASSERT_NEAR(Test_Table._Rates[0], 0, 1e-12);
-    ASSERT_NEAR(Test_Table._Rates[150], 2.983e-13, 1e-14);
+    //add lower diagonal
+    ld.push_back(5.5);
+    ld.push_back(11);
+    ld.push_back(M_PI);
+    ld.push_back(0.0);
 
-}
-//Interpolation on cross sections
-TEST_CASE(Interpolation){
-    //make the instance 
-    //HypiC::Rate_Table_Object<double> Test_Table = HypiC::Rate_Table_Object<double>();
-    HypiC::Rate_Table_Object Test_Table = HypiC::Rate_Table_Object();
+    //add diagonal 
+    d.push_back(1.0);
+    d.push_back(3.0);
+    d.push_back(9.1);
+    d.push_back(2.5);
+    d.push_back(M_PI * M_PI);
 
-    //call the read file
-    //this assumes that the build directory is in the same folder as the HypiC directory, should enforce this.
-    std::string file_path = "../Reactions/Xe_Ionization_0_to_1.txt";
-    Test_Table.Read_Table(file_path);
+    //add upper diagonal
+    ud.push_back(2.0);
+    ud.push_back(4.5);
+    ud.push_back(20.0);
+    ud.push_back(2.71);
 
-    //interpolation tests
-    //check bounds
-    ASSERT_NEAR(Test_Table.interpolate(-1), 0, 1e-14);
-    ASSERT_NEAR(Test_Table.interpolate(200), 2.983e-13, 1e-14);
 
-    //check general interpolation
-    ASSERT_NEAR(Test_Table.interpolate(116.5), 2.730e-13, 1e-14);
+    //add B, use manufactured solution where x is a vector of 1's
+    B.push_back(3.0);
+    B.push_back(13.0);
+    B.push_back(40.1);
+    B.push_back(M_PI + 5.21);
+    B.push_back(M_PI * M_PI);
 
-    //check interpolation at exact table location
-    ASSERT_NEAR(Test_Table.interpolate(100), 2.539e-13, 1e-14);
+    x = HypiC::Thomas_Algorithm(ld, d, ud, B);
+
+    ASSERT_NEAR(x[0], 1, Tolerance);
+    ASSERT_NEAR(x[1], 1, Tolerance);
+    ASSERT_NEAR(x[2], 1, Tolerance);
+    ASSERT_NEAR(x[3], 1, Tolerance);
+    ASSERT_NEAR(x[4], 1, Tolerance);
 }
 
-TEST_SUITE(Rate_Suite){
-    TEST(Constructor);
-    TEST(Xe_Single_Ionization_Read);
-    TEST(Interpolation);
+
+TEST_SUITE(Math){
+    TEST(Thomas_Algorithm);
 }
 
 
@@ -64,6 +60,6 @@ TEST_SUITE(Rate_Suite){
 auto 
 main() -> int
 {
-    RUN_SUITE(Rate_Suite);
+    RUN_SUITE(Math);
     return 0;
 }

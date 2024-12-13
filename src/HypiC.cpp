@@ -71,10 +71,10 @@ int main(){
         
         //interpolate to grid
         Electrons = HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
-        //std::cout << Electrons.EnergyDensity[3] << "\n";
+        std::cout << Electrons.EnergyDensity[3] << "\n";
         //update electrons
         Electrons = HypiC::Update_Electrons(Electrons, Neutrals, Ions, Ionization_Rates, Loss_Rates, Input_Options);
-        //std::cout << Electrons.EnergyDensity[3] << "\n";
+        std::cout << Electrons.EnergyDensity[3] << "\n";
         //interpolate
         Neutrals = HypiC::Grid_to_Particles_Neutrals(Neutrals, Electrons);
         Ions = HypiC::Grid_to_Particles_Ions(Ions, Electrons);
@@ -82,7 +82,7 @@ int main(){
         //update time sum
         Results.Time_Sum(Electrons, Input_Options);
 
-        //periodic output
+        //periodic outputced
         if (i % Input_Options.Output_Interval == 0){
             std::cout << "!!!!!!! Iteration: " << i+1 << " !!!!!!!\n";
             Results.Write_Output("Output.csv", Input_Options.nCells);
