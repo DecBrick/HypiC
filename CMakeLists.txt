@@ -43,7 +43,7 @@ endif()
 
 #add warnings?
 
-# Add the HypiC_SOURCES library
+# Add the HypiC_Sources library
 add_subdirectory(src)
 
 
@@ -60,6 +60,6 @@ target_link_libraries(HypiC PUBLIC HypiC_Sources)
 #===============================================================================
 
 # Enable testing
-#include(CTest)
-#enable_testing()
-#add_subdirectory(test)
+include(CTest)
+enable_testing()
+add_subdirectory(test)
