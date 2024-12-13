@@ -118,14 +118,6 @@ namespace HypiC{
 
         //push the ions
         for (size_t i=0; i<Ions._nParticles; ++i){
-            if (i==14999){
-                std::cout << "------------------\n";
-                std::cout<< Ions._ChargetoMassRatio << "\n";
-                std::cout<< Ions._Positions[14999] << "\n";
-                std::cout<< Ions._Velocities[14999] << "\n";
-                std::cout<< Ions._ElectricField[14999] << "\n";
-                std::cout<< Simulation_Parameters.dt << "\n";
-            }
             Ions.Update_Particle(i, Simulation_Parameters.dt, Ionization_rates);
             if (Ions.get_Weight(i) <=0){
                 std::cout << "Empty Particle\n";
@@ -139,12 +131,6 @@ namespace HypiC{
             if (z < 0){
                 Reflect_These.push_back(i);
                 n_reflect += 1;
-            }
-            if (i==14999){
-                std::cout << "%%%%%%%%%%%%%%%%\n";
-                std::cout<< Ions._Positions[14999] << "\n";
-                std::cout<< Ions._Velocities[14999] << "\n";
-                std::cout<< Ions._ElectricField[14999] << "\n";
             }
         }
         //enforce ion boundary conditions
@@ -177,7 +163,6 @@ namespace HypiC{
 
         //Update discharge current
         Electrons.Compute_Discharge_Current(Simulation_Parameters);
-        std::cout << Electrons.Id << "\n";
         //Electron Velocity 
         Electrons.Update_Velocity(Simulation_Parameters);
 

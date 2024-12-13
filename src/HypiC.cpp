@@ -59,29 +59,18 @@ int main(){
     
 
     std::cout << "Initialization Complete\n";
-    std::cout << Electrons.Id << "\n";
 
-    double max_z = 0.0;
 
-    for (size_t i=0; i<Ions._nParticles; ++i){ max_z = std::max(max_z, Ions.get_Position(i)); }
-    std::cout << max_z << "\n";
-
+    std::cout << "%%%%%%%%%%%%%%%%%%% Entering Iterations %%%%%%%%%%%%%%%%%%%\n";
     //main loop
     for(size_t i=0; i < Input_Options.nIterations; ++i){
         //update heavy species
         Neutrals = HypiC::Update_Heavy_Species_Neutrals(Neutrals, Ions, Ionization_Rates, Input_Options);
         Ions = HypiC::Update_Heavy_Species_Ions(Neutrals, Ions, Ionization_Rates, Input_Options);
         
-        //interpolate
-        max_z = 0.0;
-
-        for (size_t i=0; i<Ions._nParticles; ++i){ max_z = std::max(max_z, Ions.get_Position(i)); }
-        std::cout << max_z << "\n";
-
-        std::cout << Electrons.Plasma_Density_m3[199] << "\n";
+        //interpolate to grid 
         Electrons = HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
 
-        std::cout << Electrons.Plasma_Density_m3[199] << "\n";
         //update electrons
         Electrons = HypiC::Update_Electrons(Electrons, Neutrals, Ions, Ionization_Rates, Loss_Rates, Input_Options);
 
@@ -94,17 +83,23 @@ int main(){
 
         //periodic output
         if (i % Input_Options.Output_Interval == 0){
+            std::cout << "!!!!!!! Iteration: " << i+1 << " !!!!!!!\n";
             Results.Write_Output("Output.csv", Input_Options.nCells);
         }
         
     }
-    Results.Time_Sum(Electrons, Input_Options);
+    //for avoiding an extra dt
+    Input_Options.dt = 0.0;
     //final output
-    std::cout << "Simulation Complete\n";
+    std::cout << "!!!!!!! Simulation Complete !!!!!!!\n";
+    Results.Time_Sum(Electrons, Input_Options);
+    Results.Write_Output("Output.csv", Input_Options.nCells);
+
+
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop-start);
 
     std::cout << "Run time in s was:" << duration.count() << "\n";
 
-    Results.Write_Output("Output.csv", Input_Options.nCells);
+    
 }
