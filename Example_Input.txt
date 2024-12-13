@@ -16,3 +16,4 @@
 5 //initial cathode electron temperature, eV
 2e17 //initial minimum ion density
 1e18 //initial max ion density
+0.5 //minimum electron temperature

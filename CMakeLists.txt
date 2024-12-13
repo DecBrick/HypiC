@@ -46,6 +46,9 @@ endif()
 # Add the HypiC_SOURCES library
 add_subdirectory(src)
 
+
+
+
 # Add the executable
 add_executable(HypiC "${CMAKE_SOURCE_DIR}/src/HypiC.cpp")
 target_compile_options(HypiC PRIVATE "-march=native")

@@ -60,7 +60,8 @@ int main(){
 
     std::cout << "Initialization Complete\n";
 
-
+    std::cout << Electrons.EnergyDensity[3] << "\n";
+    std::cout << Input_Options.Min_Electron_Temperature_eV << "\n";
     std::cout << "%%%%%%%%%%%%%%%%%%% Entering Iterations %%%%%%%%%%%%%%%%%%%\n";
     //main loop
     for(size_t i=0; i < Input_Options.nIterations; ++i){
@@ -68,12 +69,12 @@ int main(){
         Neutrals = HypiC::Update_Heavy_Species_Neutrals(Neutrals, Ions, Ionization_Rates, Input_Options);
         Ions = HypiC::Update_Heavy_Species_Ions(Neutrals, Ions, Ionization_Rates, Input_Options);
         
-        //interpolate to grid 
+        //interpolate to grid
         Electrons = HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
-
+        //std::cout << Electrons.EnergyDensity[3] << "\n";
         //update electrons
         Electrons = HypiC::Update_Electrons(Electrons, Neutrals, Ions, Ionization_Rates, Loss_Rates, Input_Options);
-
+        //std::cout << Electrons.EnergyDensity[3] << "\n";
         //interpolate
         Neutrals = HypiC::Grid_to_Particles_Neutrals(Neutrals, Electrons);
         Ions = HypiC::Grid_to_Particles_Ions(Ions, Electrons);

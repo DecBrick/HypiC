@@ -97,5 +97,9 @@ namespace HypiC{
         std::getline(f, line);
         pos = line.find_first_of("//");
         this->Initial_Max_Ion_Density = std::stod(line.substr(0, pos));
+        //Min Electron Temperature
+        std::getline(f, line);
+        pos = line.find_first_of("//");
+        this->Min_Electron_Temperature_eV = std::stod(line.substr(0, pos));
     };
 }
