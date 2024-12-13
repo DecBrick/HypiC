@@ -85,17 +85,17 @@ namespace HypiC
         return this->Electric_Field_V_m[index];
     }
 
-    void Electrons_Object::Clear_Out_Particles(size_t nNeutrals, size_t nIons){
+    void Electrons_Object::Clear_Out_Particles(size_t nCells){
         this->Neutral_Density_m3.clear();
-        this->Neutral_Density_m3.resize(nNeutrals, 0.0);
+        this->Neutral_Density_m3.resize(nCells, 0.0);
         this->Plasma_Density_m3.clear();
-        this->Plasma_Density_m3.resize(nIons, 0.0);
+        this->Plasma_Density_m3.resize(nCells, 0.0);
         this->Ion_Current_Density.clear();
-        this->Ion_Current_Density.resize(nIons, 0.0);
+        this->Ion_Current_Density.resize(nCells, 0.0);
         this->Neutral_Velocity_m_s.clear();
-        this->Neutral_Velocity_m_s.resize(nNeutrals, 0.0);
+        this->Neutral_Velocity_m_s.resize(nCells, 0.0);
         this->Ion_Velocity_m_s.clear();
-        this->Ion_Velocity_m_s.resize(nIons, 0.0);
+        this->Ion_Velocity_m_s.resize(nCells, 0.0);
     }
 
     void Electrons_Object::Update_From_Neutrals(size_t index, double neutral_density, double neutral_velocity){
@@ -107,6 +107,18 @@ namespace HypiC
         this->Plasma_Density_m3[index] += plasma_density;
         this->Ion_Current_Density[index] += current_density;
         this->Ion_Velocity_m_s[index] += ion_velocity;
+    }
+
+    void Electrons_Object::Normalize_Velocities(){
+        //for each cell
+        for (size_t i = 0; i < this->_nElectrons; ++i){
+            //divide neutral flux sum by total density
+            this->Neutral_Velocity_m_s[i] /= this->Neutral_Density_m3[i];
+            //divide ion flux sum by total density
+            this->Ion_Velocity_m_s[i] /= this->Plasma_Density_m3[i];
+            //apply charge factor to current density
+            this->Ion_Current_Density[i] *= 1.602176634e-19;
+        }
     }
 
     void Electrons_Object::Update_Mobility(HypiC::Options_Object Simulation_Parameters, HypiC::Rate_Table_Object Ionization_Rates){

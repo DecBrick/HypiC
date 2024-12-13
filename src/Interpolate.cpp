@@ -5,7 +5,7 @@
 namespace HypiC{
     HypiC::Electrons_Object Particles_to_Grid(HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Electrons_Object Electrons){
         // remove previous particle data to start summations at 0.0
-        Electrons.Clear_Out_Particles(Neutrals._nParticles,Ions._nParticles);
+        Electrons.Clear_Out_Particles(Electrons._nElectrons);
         double dz = Electrons.Grid_Step;
         // loop over neutrals
         for(size_t i=0; i<Neutrals._nParticles; ++i){
@@ -27,14 +27,14 @@ namespace HypiC{
                     // calculate partial neutral flux for this cell and next
                     double N_flux = s*(w/dz)*Neutrals.get_Velocity(i);
                     // add values to cells' summations
-                    Electrons.Update_From_Neutrals(c,N_den,N_flux/N_den);
+                    Electrons.Update_From_Neutrals(c,N_den,N_flux);
 
                     if(c!=Electrons._nElectrons-1){
                         // repeat for next cell
                         // shape = z_rel
                         N_den = z_rel*w/dz;
                         N_flux = z_rel*(w/dz)*Neutrals.get_Velocity(i);
-                        Electrons.Update_From_Neutrals(c+1,N_den,N_flux/N_den);
+                        Electrons.Update_From_Neutrals(c+1,N_den,N_flux);
                     }
                     break;
                 }
@@ -62,19 +62,24 @@ namespace HypiC{
                     double J_den = s*(w/dz)*Ions.get_Velocity(i);
                     double J_den_next = z_rel*(w/dz)*Ions.get_Velocity(i);
                     // add values to cells' summations
-                    Electrons.Update_From_Ions(c,P_den,1.602176634e-19*J_den,J_den/P_den);
+                    Electrons.Update_From_Ions(c,P_den,J_den,J_den);
 
                     if(c!=Electrons._nElectrons-1){
                         // repeat for next cell
                         // shape = z_rel
                         P_den = z_rel*w/dz;
                         J_den = z_rel*(w/dz)*Ions.get_Velocity(i);
-                        Electrons.Update_From_Ions(c+1,P_den,1.602176634e-19*J_den,J_den/P_den);
+                        Electrons.Update_From_Ions(c+1,P_den,J_den,J_den);
                     }
                     break;
                 }
             }
         }
+
+        //loop over cells to do the normalization using the total sums
+        Electrons.Normalize_Velocities();
+
+
         return Electrons;
     }
 
