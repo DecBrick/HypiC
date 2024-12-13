@@ -1,6 +1,5 @@
 #include <cmath>
 #include <iostream>
-#include <omp.h>
 #include "HypiCpp.hpp"
 
 namespace HypiC{
@@ -9,7 +8,6 @@ namespace HypiC{
         Electrons.Clear_Out_Particles(Neutrals._nParticles,Ions._nParticles);
         double dz = Electrons.Grid_Step;
         // loop over neutrals
-        #pragma omp parallel for private(i,c) shared(dz,Electrons,Neutrals)
         for(size_t i=0; i<Neutrals._nParticles; ++i){
             double z_p = Neutrals.get_Position(i);
             
@@ -44,7 +42,6 @@ namespace HypiC{
         }
 
         // loop over ions
-        #pragma omp parallel for private(i,c) shared(dz,Electrons,Ions)
         for(size_t i=0; i<Ions._nParticles; ++i){
             double z_p = Ions.get_Position(i);
 
@@ -83,7 +80,6 @@ namespace HypiC{
 
     HypiC::Particles_Object Grid_to_Particles_Neutrals(HypiC::Particles_Object Neutrals, HypiC::Electrons_Object Electrons){
         // loop over neutrals
-        #pragma omp parallel for private(i,c) shared(dz,Electrons,Neutrals)
         for(size_t i=0; i<Neutrals._nParticles; ++i){
             double e_den;
             double e_tmp;
@@ -115,7 +111,6 @@ namespace HypiC{
 
     HypiC::Particles_Object Grid_to_Particles_Ions(HypiC::Particles_Object Ions, HypiC::Electrons_Object Electrons){
         // loop over ions
-        #pragma omp parallel for private(i,c) shared(dz,Electrons,Ions)
         for(size_t i=0; i<Ions._nParticles; ++i){
             double e_den;
             double e_tmp;
