@@ -60,8 +60,12 @@ int main(){
 
     std::cout << "Initialization Complete\n";
     std::cout << Electrons.Id << "\n";
-    std::cout << Electrons.Ion_Velocity_m_s[199] << "\n";
-    std::cout << Electrons.Plasma_Density_m3[5] << "\n";
+
+    double max_z = 0.0;
+
+    for (size_t i=0; i<Ions._nParticles; ++i){ max_z = std::max(max_z, Ions.get_Position(i)); }
+    std::cout << max_z << "\n";
+
     //main loop
     for(size_t i=0; i < Input_Options.nIterations; ++i){
         //update heavy species
@@ -69,12 +73,15 @@ int main(){
         Ions = HypiC::Update_Heavy_Species_Ions(Neutrals, Ions, Ionization_Rates, Input_Options);
         
         //interpolate
-        double max_z = 0.0;
+        max_z = 0.0;
 
         for (size_t i=0; i<Ions._nParticles; ++i){ max_z = std::max(max_z, Ions.get_Position(i)); }
         std::cout << max_z << "\n";
 
+        std::cout << Electrons.Plasma_Density_m3[199] << "\n";
         Electrons = HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
+
+        std::cout << Electrons.Plasma_Density_m3[199] << "\n";
         //update electrons
         Electrons = HypiC::Update_Electrons(Electrons, Neutrals, Ions, Ionization_Rates, Loss_Rates, Input_Options);
 

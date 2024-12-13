@@ -79,7 +79,6 @@ namespace HypiC{
         //loop over cells to do the normalization using the total sums
         Electrons.Normalize_Velocities();
 
-
         return Electrons;
     }
 

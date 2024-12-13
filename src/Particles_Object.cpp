@@ -54,6 +54,11 @@ namespace HypiC
 
         //update the number of particles
         this->_nParticles-=1;
+
+        //try setting properites to 0
+        /*this->_Positions[index] = 0.0;
+        this->_Velocities[index] = 0.0;
+        this->_Weights[index] = 0.0;*/
     }
 
     //Update particle method

@@ -117,8 +117,15 @@ namespace HypiC{
         double w;
 
         //push the ions
-        double max_z = 0.0;
         for (size_t i=0; i<Ions._nParticles; ++i){
+            if (i==14999){
+                std::cout << "------------------\n";
+                std::cout<< Ions._ChargetoMassRatio << "\n";
+                std::cout<< Ions._Positions[14999] << "\n";
+                std::cout<< Ions._Velocities[14999] << "\n";
+                std::cout<< Ions._ElectricField[14999] << "\n";
+                std::cout<< Simulation_Parameters.dt << "\n";
+            }
             Ions.Update_Particle(i, Simulation_Parameters.dt, Ionization_rates);
             if (Ions.get_Weight(i) <=0){
                 std::cout << "Empty Particle\n";
@@ -133,29 +140,30 @@ namespace HypiC{
                 Reflect_These.push_back(i);
                 n_reflect += 1;
             }
-            max_z = std::max(max_z, z);
+            if (i==14999){
+                std::cout << "%%%%%%%%%%%%%%%%\n";
+                std::cout<< Ions._Positions[14999] << "\n";
+                std::cout<< Ions._Velocities[14999] << "\n";
+                std::cout<< Ions._ElectricField[14999] << "\n";
+            }
         }
         //enforce ion boundary conditions
+        //count backwards on the remove so we don't mess up the indices 
         for (size_t i=n_remove; i>0; --i){
             Ions.Remove_Particle(Remove_These[i-1]);//remove the particle
-            Ions._nParticles -= 1;//update the number of particles
             Remove_These.pop_back();//remove from the remove list
         }
         for (size_t i=n_reflect; i>0; --i){
             //add to the neutrals with position = 0 and reflected velocity
             //resample from Maxwellian?
             current_index = Reflect_These[i-1];
-            //Neutrals.Add_Particle(0, -1 * Ions.get_Position(current_index), Ions.get_Weight(current_index),
-            //Ions.get_ElectricField(current_index), Ions.get_ElectronDensity(current_index), Ions.get_ElectronTemperature(current_index));
-            Neutrals._nParticles += 1; //add to neutrals
+            Neutrals.Add_Particle(0, -1 * Ions.get_Position(current_index), Ions.get_Weight(current_index),Ions.get_ElectricField(current_index), Ions.get_ElectronDensity(current_index), Ions.get_ElectronTemperature(current_index));
 
             //remove the particle from the ions
             Ions.Remove_Particle(current_index);
-            Ions._nParticles -= 1;//update the number of particles
             Remove_These.pop_back();//remove from the reflect list
         }
 
-        //std::cout << max_z << "\n";
         return Ions;
     };
 
