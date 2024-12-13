@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include <omp.h>
 #include "HypiCpp.hpp"
 
 namespace HypiC{
@@ -9,6 +10,7 @@ namespace HypiC{
         
         double dz = Electrons.Grid_Step;
         // loop over neutrals
+        #pragma omp parallel for private(i,c) shared(dz,Electrons,Neutrals)
         for(size_t i=0; i<Neutrals._nParticles; ++i){
             double z_p = Neutrals.get_Position(i);
 
@@ -22,20 +24,27 @@ namespace HypiC{
                     double s = 1 - z_rel;
                     // weight
                     double w = Neutrals.get_Weight(i);
-                    // calculate partial neutral density for this cell and next
+                    // calculate partial neutral density
                     double N_den = s*w /dz;
-                    double N_den_next = z_rel*w/dz;
                     // calculate partial neutral flux for this cell and next
                     double N_flux = s*(w/dz)*Neutrals.get_Velocity(i);
-                    double N_flux_next = z_rel*(w/dz)*Neutrals.get_Velocity(i);
                     // add values to cells' summations
-                    Electrons.Update_From_Neutrals(c,N_den,N_den_next,N_flux/N_den,N_flux_next/N_den_next);
+                    Electrons.Update_From_Neutrals(c,N_den,N_flux/N_den);
+
+                    if(c!=Electrons._nElectrons-1){
+                        // repeat for next cell
+                        // shape = z_rel
+                        N_den = z_rel*w/dz;
+                        N_flux = z_rel*(w/dz)*Neutrals.get_Velocity(i);
+                        Electrons.Update_From_Neutrals(c+1,N_den,N_flux/N_den);
+                    }
                     break;
                 }
             }
         }
 
         // loop over ions
+        #pragma omp parallel for private(i,c) shared(dz,Electrons,Ions)
         for(size_t i=0; i<Ions._nParticles; ++i){
             double z_p = Ions.get_Position(i);
 
@@ -56,7 +65,15 @@ namespace HypiC{
                     double J_den = s*(w/dz)*Ions.get_Velocity(i);
                     double J_den_next = z_rel*(w/dz)*Ions.get_Velocity(i);
                     // add values to cells' summations
-                    Electrons.Update_From_Ions(c,P_den,P_den_next,1.602176634e-19*J_den,1.602176634e-19*J_den_next,J_den/P_den,J_den_next/P_den_next);
+                    Electrons.Update_From_Ions(c,P_den,1.602176634e-19*J_den,J_den/P_den);
+
+                    if(c!=Electrons._nElectrons-1){
+                        // repeat for next cell
+                        // shape = z_rel
+                        P_den = z_rel*w/dz;
+                        J_den = z_rel*(w/dz)*Ions.get_Velocity(i);
+                        Electrons.Update_From_Ions(c+1,P_den,1.602176634e-19*J_den,J_den/P_den);
+                    }
                     break;
                 }
             }
@@ -66,6 +83,7 @@ namespace HypiC{
 
     HypiC::Particles_Object Grid_to_Particles_Neutrals(HypiC::Particles_Object Neutrals, HypiC::Electrons_Object Electrons){
         // loop over neutrals
+        #pragma omp parallel for private(i,c) shared(dz,Electrons,Neutrals)
         for(size_t i=0; i<Neutrals._nParticles; ++i){
             double e_den;
             double e_tmp;
@@ -97,6 +115,7 @@ namespace HypiC{
 
     HypiC::Particles_Object Grid_to_Particles_Ions(HypiC::Particles_Object Ions, HypiC::Electrons_Object Electrons){
         // loop over ions
+        #pragma omp parallel for private(i,c) shared(dz,Electrons,Ions)
         for(size_t i=0; i<Ions._nParticles; ++i){
             double e_den;
             double e_tmp;

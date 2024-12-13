@@ -98,20 +98,15 @@ namespace HypiC
         this->Ion_Velocity_m_s.resize(nIons, 0.0);
     }
 
-    void Electrons_Object::Update_From_Neutrals(size_t index, double neutral_density, double neutral_density_next, double neutral_velocity, double neutral_velocity_next){
+    void Electrons_Object::Update_From_Neutrals(size_t index, double neutral_density, double neutral_velocity){
         this->Neutral_Density_m3[index] += neutral_density;
-        this->Neutral_Density_m3[index+1] += neutral_density_next;
         this->Neutral_Velocity_m_s[index] += neutral_velocity;
-        this->Neutral_Velocity_m_s[index+1] += neutral_velocity_next;
     }
 
-    void Electrons_Object::Update_From_Ions(size_t index, double plasma_density, double plasma_density_next, double current_density, double current_density_next, double ion_velocity, double ion_velocity_next){
+    void Electrons_Object::Update_From_Ions(size_t index, double plasma_density, double current_density, double ion_velocity){
         this->Plasma_Density_m3[index] += plasma_density;
-        this->Plasma_Density_m3[index+1] += plasma_density_next;
         this->Ion_Current_Density[index] += current_density;
-        this->Ion_Current_Density[index+1] += current_density_next;
         this->Ion_Velocity_m_s[index] += ion_velocity;
-        this->Ion_Velocity_m_s[index+1] += ion_velocity_next;
     }
 
     void Electrons_Object::Update_Mobility(HypiC::Options_Object Simulation_Parameters, HypiC::Rate_Table_Object Ionization_Rates){
