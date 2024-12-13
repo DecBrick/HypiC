@@ -131,9 +131,10 @@ namespace HypiC
         
         for(size_t c=0; c<this->_nElectrons; ++c){
             this->Electron_Temperature_eV[c] = (2.0/3.0) * this->EnergyDensity[c] /this->Plasma_Density_m3[c];
-            if(Electron_Temperature_eV[c] > 200){
+            if(this->Electron_Temperature_eV[c] > 200){
                 std::cout << c << "\n";
-                std::cout << Electron_Temperature_eV[c] << "\n";
+                std::cout << this->Electron_Temperature_eV[c] << "\n";
+                std::cout << this->Plasma_Density_m3[c] << "\n";
                 //throw std::invalid_argument("Temperature too high");
             }
             //P = n * e * T
