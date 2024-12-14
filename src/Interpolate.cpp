@@ -7,6 +7,8 @@ namespace HypiC{
         // remove previous particle data to start summations at 0.0
         Electrons.Clear_Out_Particles(Electrons._nElectrons);
         double dz = Electrons.Grid_Step;
+
+        #pragma omp parallel for //collapse(2)
         // loop over neutrals
         for(size_t i=0; i<Neutrals._nParticles; ++i){
             double z_p = Neutrals.get_Position(i);
@@ -41,6 +43,7 @@ namespace HypiC{
             }
         }
 
+        #pragma omp parallel for //collapse(2)
         // loop over ions
         for(size_t i=0; i<Ions._nParticles; ++i){
             double z_p = Ions.get_Position(i);
@@ -83,6 +86,7 @@ namespace HypiC{
     }
 
     HypiC::Particles_Object Grid_to_Particles_Neutrals(HypiC::Particles_Object Neutrals, HypiC::Electrons_Object Electrons){
+        #pragma omp parallel for //collapse(2)
         // loop over neutrals
         for(size_t i=0; i<Neutrals._nParticles; ++i){
             double e_den;
@@ -119,6 +123,7 @@ namespace HypiC{
     }
 
     HypiC::Particles_Object Grid_to_Particles_Ions(HypiC::Particles_Object Ions, HypiC::Electrons_Object Electrons){
+        #pragma omp parallel for //collapse(2)
         // loop over ions
         for(size_t i=0; i<Ions._nParticles; ++i){
             double e_den;

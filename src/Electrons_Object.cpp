@@ -2,6 +2,8 @@
 #include <cmath>//for exp
 #include "Electrons_Object.hpp"
 #include <stdexcept>
+#include "HypiCpp.hpp"
+
 namespace HypiC
 {
 
@@ -129,6 +131,7 @@ namespace HypiC
         double Beta;
         double Omega;
         
+        #pragma omp parallel for private(Elec_Cycle_Freq,Beta,Omega)
         for(size_t c=0; c<this->_nElectrons; ++c){
             this->Electron_Temperature_eV[c] = (2.0/3.0) * this->EnergyDensity[c] /this->Plasma_Density_m3[c];
             if(this->Electron_Temperature_eV[c] > 200){
@@ -174,6 +177,7 @@ namespace HypiC
     }
 
     void Electrons_Object::Update_Velocity(HypiC::Options_Object Simulation_Parameters){
+        #pragma omp parallel for
         for(size_t c1=0; c1<Simulation_Parameters.nCells; ++c1){
             this->Electron_Velocity_m_s[c1] = (this->Ion_Current_Density[c1] - this->Id/Simulation_Parameters.Channel_Area_m2/1.602176634e-19 / this->EnergyDensity[c1]);
         }
@@ -182,6 +186,7 @@ namespace HypiC
     void Electrons_Object::Update_Pressure_Gradient(HypiC::Options_Object Simulation_Parameters){
         
         this->Electron_Pressure_Gradient[0] = HypiC::Forward_Difference(this->Electron_Pressure[0],this->Electron_Pressure[1],this->Cell_Center[0],this->Cell_Center[1]);
+        #pragma omp parallel for
         for(size_t i=1; i<Simulation_Parameters.nCells-1; ++i){
             this->Electron_Pressure_Gradient[i] = HypiC::Central_Difference(this->Electron_Pressure[i-1],this->Electron_Pressure[i+1],this->Cell_Center[i-1],this->Cell_Center[i+1]);
         }
@@ -190,6 +195,7 @@ namespace HypiC
     }
 
     void Electrons_Object::Update_Thermal_Conductivity(HypiC::Options_Object Simulation_Parameters){
+        #pragma omp parallel for
         for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
             this->Electron_Thermal_Conductivity[i] = (10.0 / (9.0)) * this->Electron_Mobility[i] * this->EnergyDensity[i];
         }
@@ -207,6 +213,7 @@ namespace HypiC
         double enemu1;
         double enemu2;
 
+        #pragma omp parallel for private(int1,int2,int1_1,int1_2,int2_1,int2_2,enemu1,enemu2)
         for (size_t c=0; c<Simulation_Parameters.nCells-1; ++c){
             //dz = Dz * c;
             enemu1 = 1.602176634e-19 * this->Plasma_Density_m3[c] * this->Electron_Mobility[c];
@@ -228,6 +235,7 @@ namespace HypiC
     }
 
     void Electrons_Object::Compute_Electric_Field(HypiC::Options_Object Simulation_Parameters){
+        #pragma omp parallel for
         for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
             double E = ((this->Id / Simulation_Parameters.Channel_Area_m2 - this->Ion_Current_Density[i])/1.602176634e-19/this->Electron_Mobility[i]/this->Plasma_Density_m3[i] - this->Electron_Pressure_Gradient[i]/1.602176634e-19/this->Plasma_Density_m3[i]);
             this->Electric_Field_V_m[i] = E;
@@ -237,6 +245,7 @@ namespace HypiC
     void Electrons_Object::Solve_Potential(HypiC::Options_Object Simulation_Parameters){
         this->Potential[0] = Simulation_Parameters.Discharge_Voltage_V;
 
+        #pragma omp parallel for
         for(size_t i=1; i<Simulation_Parameters.nCells; ++i){
             double dx = this->Cell_Center[i] - this->Cell_Center[i-1];
             this->Potential[i] = this->Potential[i-1] - 0.5 * dx * (this->Electric_Field_V_m[i] + this->Electric_Field_V_m[i-1]);
@@ -273,6 +282,7 @@ namespace HypiC
         std::vector<double> OhmicHeating(Simulation_Parameters.nCells,0);
         std::vector<double> Collisional_Loss(Simulation_Parameters.nCells,0);
         std::vector<double> WallPowerLoss(Simulation_Parameters.nCells,0);
+        #pragma omp parallel for
         for(size_t i=1; i<Simulation_Parameters.nCells-1; ++i){ //set limits to disclude anode and cathode  
             OhmicHeating[i] = this->Plasma_Density_m3[i] * this->Electron_Velocity_m_s[i] * this->Electric_Field_V_m[i];
             Collisional_Loss[i] = this->Plasma_Density_m3[i] * this->Neutral_Density_m3[i] * Loss_Rates.interpolate(1.5 * this->Electron_Temperature_eV[i]);
@@ -298,6 +308,7 @@ namespace HypiC
         difference the gradient in the energy density which adds a geometric factor. 
         */
 
+        #pragma omp parallel for
         //loop over main body
         for(size_t i=1; i<Simulation_Parameters.nCells - 1; ++i){
             if (this->Electron_Velocity_m_s[i] > 0){
@@ -341,6 +352,7 @@ namespace HypiC
         //call matrix solver, might want to use Thomas https://www.quantstart.com/articles/Tridiagonal-Matrix-Algorithm-Thomas-Algorithm-in-C/
         Energy_new = HypiC::Thomas_Algorithm(diag_low, diag, diag_up, B);
 
+        #pragma omp parallel for
         //limit to a minimum temperature and assign
         for(size_t i=0; i<Simulation_Parameters.nCells; ++i){
             this->EnergyDensity[i] = std::max(Energy_new[i], 1.5 * this->Plasma_Density_m3[i] * Simulation_Parameters.Min_Electron_Temperature_eV);

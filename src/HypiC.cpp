@@ -3,7 +3,6 @@
 #include <iostream>
 #include <chrono>
 
-
 int main(){
     auto start = std::chrono::high_resolution_clock::now();
     std::cout << "-------------------------------------\n";
@@ -94,7 +93,7 @@ int main(){
 
 
     auto stop = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop-start);
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
 
     std::cout << "Run time in s was:" << duration.count() << "\n";
 

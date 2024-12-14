@@ -1,5 +1,6 @@
 #include "HypiCpp.hpp"
 #include <iostream>
+
 namespace HypiC{
     HypiC::Particles_Object Update_Heavy_Species_Neutrals(HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Rate_Table_Object Ionization_rates, HypiC::Options_Object Simulation_Parameters){
         std::vector<size_t> Remove_These;
@@ -16,7 +17,7 @@ namespace HypiC{
         double nn;
         double w;
 
-
+        #pragma omp parallel for private(z)
         //push the neutrals
         for (size_t i=0; i<Neutrals._nParticles; ++i){
             //push the neutrals
@@ -36,6 +37,7 @@ namespace HypiC{
             }
         }
 
+        #pragma omp parallel for reduction(-:Neutrals._nParticles)
         //enforce neutral boundary conditions
         for (size_t i=n_remove; i>0; --i){
             Neutrals.Remove_Particle(Remove_These[i]);//remove the particle
@@ -53,6 +55,7 @@ namespace HypiC{
         nn = Simulation_Parameters.Mass_Flow_Rate_kg_s / (mass * un);
         srand(time(NULL));
 
+        #pragma omp parallel for private(v,z,w)
         for (size_t i=0; i<n_remove; ++i){
             //sample from the maxwellian (force positive so resample)
             v = -1;
@@ -74,6 +77,7 @@ namespace HypiC{
 
         n_remove = 0;//reset for ions
 
+        #pragma omp parallel for private(z) reduction(+:n_reflect)
         //push the ions
         for (size_t i=0; i<Ions._nParticles; ++i){
 
@@ -89,6 +93,7 @@ namespace HypiC{
         
         //enforce ion boundary conditions
 
+        #pragma omp parallel for private(current_index) reduction(+:Neutrals._nParticles)
         for (size_t i=n_reflect; i>0; --i){
             //add to the neutrals with position = 0 and reflected velocity
             //resample from Maxwellian?
@@ -116,6 +121,7 @@ namespace HypiC{
         double nn;
         double w;
 
+        #pragma omp parallel for private(z) reduction(+:n_remove,n_reflect)
         //push the ions
         for (size_t i=0; i<Ions._nParticles; ++i){
             Ions.Update_Particle(i, Simulation_Parameters.dt, Ionization_rates);
@@ -134,11 +140,13 @@ namespace HypiC{
             }
         }
         //enforce ion boundary conditions
+        #pragma omp parallel for
         //count backwards on the remove so we don't mess up the indices 
         for (size_t i=n_remove; i>0; --i){
             Ions.Remove_Particle(Remove_These[i-1]);//remove the particle
             Remove_These.pop_back();//remove from the remove list
         }
+        #pragma omp parallel for private(current_index)
         for (size_t i=n_reflect; i>0; --i){
             //add to the neutrals with position = 0 and reflected velocity
             //resample from Maxwellian?

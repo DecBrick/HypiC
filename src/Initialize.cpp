@@ -92,6 +92,7 @@ namespace HypiC{
         kb = 1.380649e-23;
         srand(time(NULL));
 
+        #pragma omp parallel for //collapse(2)
         //loop over grid cells
         for(size_t c=0; c<Inputs.nCells; ++c){
             //calculate number of particles per cell and the position
@@ -151,6 +152,7 @@ namespace HypiC{
         Ions._ChargetoMassRatio = 1.602176634e-19 / mass; 
         srand(time(NULL));
 
+        #pragma omp parallel for private(z,z_particle,ne,Te,v,w) //collapse(2)
         //loop over grid cells
         for(size_t c=0; c<Inputs.nCells; ++c){
             //calculate number of particles per cell and the position
@@ -219,6 +221,7 @@ namespace HypiC{
         kb = 1.380649e-23;
         srand(time(NULL));
 
+        #pragma omp parallel for private(z,ne,Te,v,EnergyDensity,B,f,Efield)
         //loop over grid cells
         for(size_t c=0; c<Inputs.nCells; ++c){
             //calculate number of particles per cell and the position

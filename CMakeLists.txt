@@ -40,18 +40,26 @@ else()
           "Please use GCC >= ${HypiC_MIN_GCC_VERSION}")
 endif()
 
+# Optional use of OpenMP
+option(USE_OMP "Enabling OpenMP OFF)
+if(USE_OMP)
+  message(STATUS "Compiling with OpenMP)
+endif()
+else()
+  message(STATUS "Compiling without OpenMP")
+endif()
 
 #add warnings?
 
 # Add the HypiC_Sources library
 add_subdirectory(src)
 
-
-
-
 # Add the executable
 add_executable(HypiC "${CMAKE_SOURCE_DIR}/src/HypiC.cpp")
 target_compile_options(HypiC PRIVATE "-march=native")
+if(USE_OMP)
+  target_compile_options(HypiC PRIVATE "-fopenmp")
+endif()
 
 target_link_libraries(HypiC PUBLIC HypiC_Sources)
 

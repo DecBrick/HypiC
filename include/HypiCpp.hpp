@@ -2,6 +2,10 @@
 #ifndef _HypiC_
 #define _HypiC_
 
+//check for OpenMp
+#ifdef _OPENMP
+    #include <omp.h>
+#endif
 
 //add headers for classes 
 #include "Particles_Object.hpp"

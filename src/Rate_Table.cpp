@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-
+#include "HypiCpp.hpp"
 
 namespace HypiC{
 
