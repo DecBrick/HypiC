@@ -62,9 +62,13 @@ int main(){
     std::cout << "%%%%%%%%%%%%%%%%%%% Entering Iterations %%%%%%%%%%%%%%%%%%%\n";
     //main loop
     for(size_t i=0; i < Input_Options.nIterations; ++i){
-        //update heavy species
-        Neutrals = HypiC::Update_Heavy_Species_Neutrals(Neutrals, Ions, Ionization_Rates, Input_Options);
-        Ions = HypiC::Update_Heavy_Species_Ions(Neutrals, Ions, Ionization_Rates, Input_Options);
+        
+        //account for ionization
+
+        
+        //push heavy species
+        Neutrals = HypiC::Update_Heavy_Species_Neutrals(Neutrals, Ions, Electrons, Input_Options);
+        Ions = HypiC::Update_Heavy_Species_Ions(Neutrals, Ions, Electrons, Input_Options);
         
         //interpolate to grid
         Electrons = HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);

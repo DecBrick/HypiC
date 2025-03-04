@@ -74,8 +74,6 @@ namespace HypiC{
         double z_particle;
         double dz;
         double nn;
-        double ne;
-        double Te;
         double v;
         double w;
         double mass;
@@ -87,7 +85,6 @@ namespace HypiC{
 
         //create the particle class instance
         HypiC::Particles_Object Neutrals = HypiC::Particles_Object();
-        Neutrals._IonizationDirection = -1.0;//neutrals are removed due to ionization
         mass = 131.29 * 1.66053907e-27;//for Xe
         kb = 1.380649e-23;
         srand(time(NULL));
@@ -102,12 +99,7 @@ namespace HypiC{
             for(size_t p=0; p<Particles_per_cell; ++p){
                 //uniformly sample across cell. 
                 z_particle = z + dz * (rand()/RAND_MAX);
-                ne = HypiC::Initial_Electron_Density(z_particle, Inputs.Initial_Min_Ion_Density,
-                Inputs.Initial_Max_Ion_Density, Inputs.Discharge_Voltage_V, Inputs.Mass_Flow_Rate_kg_s, 
-                Inputs.Channel_Length_m);
-                Te = HypiC::Initial_Electron_Temperature(z_particle, Inputs.Initial_Anode_Temperature_eV,
-                Inputs.Initial_Cathode_Temperature_eV, Inputs.Initial_Max_Electron_Temperature_eV, 
-                Inputs.Channel_Length_m, Inputs.Domain_Length_m);
+
                 //calculate initial velocity
                 //sample from maxwellian
                 un = sqrt(2.0 * kb * Inputs.Initial_Neutral_Temperature_K / (M_PI * mass));
@@ -120,7 +112,7 @@ namespace HypiC{
                 w = (nn / Particles_per_cell) * dz;
 
                 //Add the particle
-                Neutrals.Add_Particle(z_particle, v, w, 0.0, ne, Te);
+                Neutrals.Add_Particle(z_particle, v, w, c, 0.0);
             }
         }
 
@@ -135,7 +127,6 @@ namespace HypiC{
         double z_particle;
         double dz;
         double ne;
-        double Te;
         double v;
         double w;
         double mass;
@@ -146,7 +137,6 @@ namespace HypiC{
 
         //create the particle class instance
         HypiC::Particles_Object Ions = HypiC::Particles_Object();
-        Ions._IonizationDirection = 1.0;//ions are added due to ionization
         mass = 131.29 * 1.66053907e-27;//for Xe
         kb = 1.380649e-23;
         Ions._ChargetoMassRatio = 1.602176634e-19 / mass; 
@@ -168,9 +158,7 @@ namespace HypiC{
                 ne = HypiC::Initial_Electron_Density(z_particle, Inputs.Initial_Min_Ion_Density,
                 Inputs.Initial_Max_Ion_Density, Inputs.Discharge_Voltage_V, Inputs.Mass_Flow_Rate_kg_s, 
                 Inputs.Channel_Length_m);
-                Te = HypiC::Initial_Electron_Temperature(z_particle, Inputs.Initial_Anode_Temperature_eV,
-                Inputs.Initial_Cathode_Temperature_eV, Inputs.Initial_Max_Electron_Temperature_eV, 
-                Inputs.Channel_Length_m, Inputs.Domain_Length_m);
+                
                 //calculate initial velocity
                 //sample from a maxwellian
                 v = HypiC::Maxwellian_Sampler(HypiC::Initial_Ion_Bulk_Velocity(Inputs.Initial_Anode_Temperature_eV, Inputs.Discharge_Voltage_V,
@@ -186,7 +174,7 @@ namespace HypiC{
                 w = (ne / Particles_per_cell) * dz;
 
                 //Add the particle
-                Ions.Add_Particle(z, v, w, 0, ne, Te);
+                Ions.Add_Particle(z, v, w, c, 0);
             }
         }
 

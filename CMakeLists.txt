@@ -41,10 +41,9 @@ else()
 endif()
 
 # Optional use of OpenMP
-option(USE_OMP "Enabling OpenMP OFF)
+option(USE_OMP "Enabling OpenMP OFF")
 if(USE_OMP)
-  message(STATUS "Compiling with OpenMP)
-endif()
+  message(STATUS "Compiling with OpenMP")
 else()
   message(STATUS "Compiling without OpenMP")
 endif()

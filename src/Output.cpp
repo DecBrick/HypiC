@@ -9,7 +9,6 @@ namespace HypiC{
         this->time = 0.0;
         this->Discharge_Current =0.0;
         this->Id_Last = 0.0;
-        #pragma omp parallel for
         //set equal to the size of the grid 
         for (size_t i=0; i<nCells; ++i){
             this->z_m.push_back(Grid.Cell_Center[i]);

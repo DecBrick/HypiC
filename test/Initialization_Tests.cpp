@@ -54,7 +54,6 @@ TEST_CASE(Initialize_Neutrals){
 
     //check for the charge to mass ratio and ionization direction
     ASSERT_NEAR(Neutrals._ChargetoMassRatio, 0, Tolerance);
-    ASSERT(Neutrals._IonizationDirection == -1);
 
     //check that positions are within bounds
 
@@ -64,12 +63,6 @@ TEST_CASE(Initialize_Neutrals){
     //I don't think anything should be going faster than 1000 km/s
     ASSERT(*std::max_element(Neutrals._Velocities.begin(), Neutrals._Velocities.end()) <= 1000000);
     ASSERT(*std::min_element(Neutrals._Velocities.begin(), Neutrals._Velocities.end()) >= -1000000);
-
-    //check that number density and temperature are within the bounds. 
-    ASSERT(*std::max_element(Neutrals._ElectronDensity.begin(), Neutrals._ElectronDensity.end()) <= Inputs.Initial_Max_Ion_Density);
-    ASSERT(*std::min_element(Neutrals._ElectronDensity.begin(), Neutrals._ElectronDensity.end()) >= Inputs.Initial_Min_Ion_Density);
-    ASSERT(*std::max_element(Neutrals._ElectronTemperature.begin(), Neutrals._ElectronTemperature.end()) <= Inputs.Initial_Max_Electron_Temperature_eV + Inputs.Initial_Cathode_Temperature_eV);//addition of cathode temperature is to account for when domain ends at channel exit
-    ASSERT(*std::min_element(Neutrals._ElectronTemperature.begin(), Neutrals._ElectronTemperature.end()) >= 0.0);
 
 }
 
@@ -89,7 +82,6 @@ TEST_CASE(Initialize_Ions){
     //check for the charge to mass ratio and ionization direction
     double mass_charge = 1.602176634e-19 / (131.29 * 1.66053907e-27);
     ASSERT_NEAR(Ions._ChargetoMassRatio, mass_charge, Tolerance);
-    ASSERT(Ions._IonizationDirection == 1);
 
     //check that positions are within bounds
 
@@ -99,12 +91,6 @@ TEST_CASE(Initialize_Ions){
     //I don't think anything should be going faster than 1000 km/s
     ASSERT(*std::max_element(Ions._Velocities.begin(), Ions._Velocities.end()) <= 1000000);
     ASSERT(*std::min_element(Ions._Velocities.begin(), Ions._Velocities.end()) >= -1000000);
-
-    //check that number density and temperature are within the bounds. 
-    ASSERT(*std::max_element(Ions._ElectronDensity.begin(), Ions._ElectronDensity.end()) <= Inputs.Initial_Max_Ion_Density);
-    ASSERT(*std::min_element(Ions._ElectronDensity.begin(), Ions._ElectronDensity.end()) >= Inputs.Initial_Min_Ion_Density);
-    ASSERT(*std::max_element(Ions._ElectronTemperature.begin(), Ions._ElectronTemperature.end()) <= Inputs.Initial_Max_Electron_Temperature_eV + Inputs.Initial_Cathode_Temperature_eV);//addition of cathode temperature is to account for when domain ends at channel exit
-    ASSERT(*std::min_element(Ions._ElectronTemperature.begin(), Ions._ElectronTemperature.end()) >= 0.0);
 
 }
 

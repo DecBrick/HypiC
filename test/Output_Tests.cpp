@@ -18,16 +18,14 @@ TEST_CASE(Write_File){
     for(size_t c=0; c<200; ++c){
         z = 0.5 * dz + dz * c;
         e.Cell_Center.push_back(z);
+        e.Magnetic_Field_T.push_back(0);
         //std::cout << e.Cell_Center[c] << "\n";
     }
-
     //call the set values
     T_sum.Initialize_Time_Sum(200, e);
 
-
     //write the file to the current directory
     T_sum.Write_Output("Test_Output.csv", 200);
-
     //tell the user to look for the file. 
     std::cout << "Please check the testing directory for a file called Test_Output.csv";
 }

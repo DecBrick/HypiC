@@ -1,6 +1,6 @@
 10000 //number of iterations, all lines must end with // as it allows for comments
 1000 //output interval, no line can be an empty comment as the code reads line by line
-2.5e-9 //timestep, seconds
+15e-9 //timestep, seconds
 200 //number of cells
 0.05 // domain length, meters
 0.025 // channel length for SPT-100 type thruster

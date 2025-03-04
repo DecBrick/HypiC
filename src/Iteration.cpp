@@ -2,7 +2,7 @@
 #include <iostream>
 
 namespace HypiC{
-    HypiC::Particles_Object Update_Heavy_Species_Neutrals(HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Rate_Table_Object Ionization_rates, HypiC::Options_Object Simulation_Parameters){
+    HypiC::Particles_Object Update_Heavy_Species_Neutrals(HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Electrons_Object Grid, HypiC::Options_Object Simulation_Parameters){
         std::vector<size_t> Remove_These;
         std::vector<size_t> Reflect_These;
         size_t n_remove = 0;
@@ -21,7 +21,7 @@ namespace HypiC{
         //push the neutrals
         for (size_t i=0; i<Neutrals._nParticles; ++i){
             //push the neutrals
-            Neutrals.Update_Particle(i, Simulation_Parameters.dt, Ionization_rates);
+            Neutrals.Push_Particle(i, Simulation_Parameters.dt, Grid);
 
             //check outflow condition
             z = Neutrals.get_Position(i);
@@ -72,7 +72,7 @@ namespace HypiC{
 
             //might need the grid methods for adding the electron quantities, however, this may get updated before the next
             //time step so not matter too much
-            Neutrals.Add_Particle(z, v, w, 0, 0, 0);
+            Neutrals.Add_Particle(z, v, w, 0, 0);
         }
 
         n_remove = 0;//reset for ions
@@ -98,15 +98,15 @@ namespace HypiC{
             //add to the neutrals with position = 0 and reflected velocity
             //resample from Maxwellian?
             current_index = Reflect_These[i-1];
-            Neutrals.Add_Particle(0, -1 * Ions.get_Position(current_index), Ions.get_Weight(current_index),
-            Ions.get_ElectricField(current_index), Ions.get_ElectronDensity(current_index), Ions.get_ElectronTemperature(current_index));
+            Neutrals.Add_Particle(0, -1 * Ions.get_Position(current_index), Ions.get_Weight(current_index), 0, 
+            Ions.get_ElectricField(current_index));
             Neutrals._nParticles += 1; //add to neutrals
 
         }
         return Neutrals;
     };
     
-    HypiC::Particles_Object Update_Heavy_Species_Ions(HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Rate_Table_Object Ionization_rates, HypiC::Options_Object Simulation_Parameters){
+    HypiC::Particles_Object Update_Heavy_Species_Ions(HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Electrons_Object Grid, HypiC::Options_Object Simulation_Parameters){
         std::vector<size_t> Remove_These;
         std::vector<size_t> Reflect_These;
         size_t n_remove = 0;
@@ -124,7 +124,7 @@ namespace HypiC{
         #pragma omp parallel for private(z) reduction(+:n_remove,n_reflect)
         //push the ions
         for (size_t i=0; i<Ions._nParticles; ++i){
-            Ions.Update_Particle(i, Simulation_Parameters.dt, Ionization_rates);
+            Ions.Push_Particle(i, Simulation_Parameters.dt, Grid);
             if (Ions.get_Weight(i) <=0){
                 std::cout << "Empty Particle\n";
             }
@@ -151,7 +151,7 @@ namespace HypiC{
             //add to the neutrals with position = 0 and reflected velocity
             //resample from Maxwellian?
             current_index = Reflect_These[i-1];
-            Neutrals.Add_Particle(0, -1 * Ions.get_Position(current_index), Ions.get_Weight(current_index),Ions.get_ElectricField(current_index), Ions.get_ElectronDensity(current_index), Ions.get_ElectronTemperature(current_index));
+            Neutrals.Add_Particle(0, -1 * Ions.get_Position(current_index), Ions.get_Weight(current_index), 0, Ions.get_ElectricField(current_index));
 
             //remove the particle from the ions
             Ions.Remove_Particle(current_index);

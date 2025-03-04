@@ -98,7 +98,7 @@ namespace HypiC{
             for(size_t c=0; c<Electrons._nElectrons; ++c){
                 // determine if particle is within cell
                 double z_cell = Electrons.Get_CellCenter(c);
-                double z_rel = abs( (z_cell - z_p)/dz);
+                double z_rel = fabs( (z_cell - z_p)/dz);
                 if(z_rel < 1){
                     // shape factor (s for next cell = z_rel)
                     double s = 1 - z_rel;
@@ -115,9 +115,6 @@ namespace HypiC{
                 }
             }
 
-            // set ion electron desity and electron temperature
-            Neutrals.set_ElectronDensity(i, e_den);
-            Neutrals.set_ElectronTemperature(i, e_tmp);
         }
         return Neutrals;
     }
@@ -136,7 +133,7 @@ namespace HypiC{
             for(size_t c=0; c<Electrons._nElectrons; ++c){
                 // determine if particle is within cell
                 double z_cell = Electrons.Get_CellCenter(c);
-                double z_rel = abs( (z_cell - z_p)/dz);
+                double z_rel = fabs( (z_cell - z_p)/dz);
                 if(z_rel < 1){
                     // shape factor (s for next cell = z_rel)
                     double s = 1 - z_rel;
@@ -157,8 +154,6 @@ namespace HypiC{
             }
 
             // set ion electron desity, electron temperature, and electric field
-            Ions.set_ElectronDensity(i, e_den);
-            Ions.set_ElectronTemperature(i, e_tmp);
             Ions.set_ElectricField(i, E_fld);
         }
         return Ions;
