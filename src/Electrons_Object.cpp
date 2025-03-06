@@ -108,6 +108,8 @@ namespace HypiC
         this->Neutral_Velocity_m_s.resize(nCells, 0.0);
         this->Ion_Velocity_m_s.clear();
         this->Ion_Velocity_m_s.resize(nCells, 0.0);
+        this->Neutral_Temperature_K.clear();
+        this->Neutral_Temperature_K.resize(nCells, 0.0);
     }
 
     void Electrons_Object::Update_From_Neutrals(size_t index, double neutral_density, double neutral_velocity, double neutral_energy){
@@ -122,12 +124,9 @@ namespace HypiC
         this->Ion_Velocity_m_s[index] += ion_velocity;
     }
 
-    void Electrons_Object::Normalize_Velocities(){
+    void Electrons_Object::Normalize_Interpolations(){
         //for each cell
         for (size_t i = 0; i < this->_nElectrons; ++i){
-            if (this->Plasma_Density_m3[i] <= 0){
-                //std::cout << "Say Something\n";
-            }
             //divide neutral flux sum by total density
             this->Neutral_Velocity_m_s[i] /= this->Neutral_Density_m3[i];
             //divide ion flux sum by total density
@@ -137,6 +136,10 @@ namespace HypiC
             //apply sum term to temperature
             this->Neutral_Temperature_K[i] -= pow(this->Neutral_Velocity_m_s[i], 2);
             this->Neutral_Temperature_K[i] *= 131.29 * 1.66053907e-27 / (2 * 1.380649e-23 * this->Neutral_Density_m3[i]);//mass for Xe
+
+            //finally, divide the density by the volume of the cell (term cancels for velocity and temperature)
+            this->Neutral_Density_m3[i] /= this->Grid_Step;
+            this->Plasma_Density_m3[i] /= this->Grid_Step;
         }
     }
 
