@@ -97,7 +97,8 @@ namespace HypiC
         return this->Electric_Field_V_m[index];
     }
 
-    void Electrons_Object::Clear_Out_Particles(size_t nCells){
+    void Electrons_Object::Clear_Out_Particles(){
+        size_t nCells = this->_nElectrons;
         this->Neutral_Density_m3.clear();
         this->Neutral_Density_m3.resize(nCells, 0.0);
         this->Plasma_Density_m3.clear();

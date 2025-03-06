@@ -5,7 +5,7 @@
 namespace HypiC{
     HypiC::Electrons_Object Particles_to_Grid(HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Electrons_Object Electrons){
         // remove previous particle data to start summations at 0.0
-        Electrons.Clear_Out_Particles(Electrons._nElectrons);
+        Electrons.Clear_Out_Particles();
         double dz = Electrons.Grid_Step;
         double z_p;
         double z_cell;
@@ -18,7 +18,7 @@ namespace HypiC{
         int cell1;
         int cell2;
 
-        #pragma omp parallel for //collapse(2)
+        //#pragma omp parallel for //collapse(2)
         // loop over neutrals
         for(size_t i=0; i<Neutrals._nParticles; ++i){
             //pull the cells
@@ -52,8 +52,7 @@ namespace HypiC{
                 Electrons.Update_From_Neutrals(cell2,N_den,N_flux,N_energy);
             }
         }
-
-        #pragma omp parallel for //collapse(2)
+        //#pragma omp parallel for //collapse(2)
         // loop over ions
         for(size_t i=0; i<Ions._nParticles; ++i){
             //pull the cells
@@ -84,10 +83,8 @@ namespace HypiC{
                 Electrons.Update_From_Ions(cell2,N_den,N_flux,N_flux);
             }
         }
-
         //loop over cells to do the normalization using the total sums
         Electrons.Normalize_Interpolations();
-
         return Electrons;
     }
     /*//leaving this out for now, there is nothing the neutrals need from the electrons

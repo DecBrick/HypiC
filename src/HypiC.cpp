@@ -43,7 +43,7 @@ int main(){
     Electrons.Compute_Electric_Field(Input_Options); 
     std::cout << "Electrons \n";
     //interpolate field back to particles
-    Neutrals = HypiC::Grid_to_Particles_Neutrals(Neutrals, Electrons);
+    //Neutrals = HypiC::Grid_to_Particles_Neutrals(Neutrals, Electrons);
     Ions = HypiC::Grid_to_Particles_Ions(Ions, Electrons);
 
     //take back half step for ions (neutrals are unaffected by the field) 
@@ -55,30 +55,31 @@ int main(){
     HypiC::Time_Sum_Object Results = HypiC::Time_Sum_Object();
     Results.Initialize_Time_Sum(Input_Options.nCells, Electrons);
     
-    
-
     std::cout << "Initialization Complete\n";
 
     std::cout << "%%%%%%%%%%%%%%%%%%% Entering Iterations %%%%%%%%%%%%%%%%%%%\n";
     //main loop
     for(size_t i=0; i < Input_Options.nIterations; ++i){
-        
+        std::cout << "Step_Start \n";
         //push heavy species
         Ions = HypiC::Update_Heavy_Species_Ions(Neutrals, Ions, Electrons, Input_Options);
         Neutrals = HypiC::Update_Heavy_Species_Neutrals(Neutrals, Ions, Electrons, Input_Options);
-        
+        std::cout << "Heavy Species\n";
         //interpolate to grid
         Electrons = HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
+        std::cout << "Interp to Grid\n";
         //update electrons
         Electrons = HypiC::Update_Electrons(Electrons, Neutrals, Ions, Ionization_Rates, Loss_Rates, Input_Options);
-        //interpolate
-        Neutrals = HypiC::Grid_to_Particles_Neutrals(Neutrals, Electrons);
+        std::cout << "Electrons\n";
+        //interpolate electric field to ions 
+        //Neutrals = HypiC::Grid_to_Particles_Neutrals(Neutrals, Electrons);
         Ions = HypiC::Grid_to_Particles_Ions(Ions, Electrons);
 
+        std::cout << "Interp to Particles \n";
         //update time sum
         Results.Time_Sum(Electrons, Input_Options);
-
-        //periodic outputced
+        std::cout << "Time Sum \n";
+        //periodic output
         if (i % Input_Options.Output_Interval == 0){
             std::cout << "!!!!!!! Iteration: " << i+1 << " !!!!!!!\n";
             Results.Write_Output("Output.csv", Input_Options.nCells);

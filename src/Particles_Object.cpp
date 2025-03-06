@@ -78,6 +78,9 @@ namespace HypiC
             //the static cast accounts for the number of cells it has traveled 
             this->_CellIndex[index] += ((this->_Velocities[index] > 0.0) - (this->_Velocities[index] < 0.0)) * 
             static_cast<size_t>((fabs(this->_Positions[index] - Electrons.Cell_Center[this->_CellIndex[index]]) / Electrons.Grid_Step)+0.5);
+            //enforce bound on cells to prevent indexing error
+            //no need to enforce lower bound due to size_t overflow 
+            this->_CellIndex[index] = std::min(Electrons._nElectrons-1, this->_CellIndex[index]);
         }
         //update cell2 index (either +-1 dependening on relative position), accounts for new cell 
         if ((this->_Positions[index] - Electrons.Cell_Center[this->_CellIndex[index]]) * this->_Cell2Index[index] < 0){

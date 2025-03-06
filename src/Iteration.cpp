@@ -32,15 +32,16 @@ namespace HypiC{
                 Neutrals.set_Weight(i, w);
             }
             cell2 = Neutrals.get_Cell(i) + Neutrals.get_Cell2(i);
-            if (Ions._Ionization_Flag[cell2]){
-                //calculate particle contribution to the cell 
-                nn = (1 - fabs((Neutrals.get_Position(i) - Grid.Get_CellCenter(cell2)/Grid.Grid_Step))) 
-                * Neutrals.get_Weight(i) / Grid.Grid_Step;
-                //weight is reduced by a proportional factor 
-                w = Neutrals.get_Weight(i) - (nn/Grid.Get_NeutralDensity(cell2))*Grid.Delta_ni[cell2] / Grid.Grid_Step;
-                Neutrals.set_Weight(i, w);
+            if ((cell2 > 0) && (cell2 < Grid._nElectrons)){
+                if (Ions._Ionization_Flag[cell2]){
+                    //calculate particle contribution to the cell 
+                    nn = (1 - fabs((Neutrals.get_Position(i) - Grid.Get_CellCenter(cell2)/Grid.Grid_Step))) 
+                    * Neutrals.get_Weight(i) / Grid.Grid_Step;
+                    //weight is reduced by a proportional factor 
+                    w = Neutrals.get_Weight(i) - (nn/Grid.Get_NeutralDensity(cell2))*Grid.Delta_ni[cell2] / Grid.Grid_Step;
+                    Neutrals.set_Weight(i, w);
+                }
             }
-
             //actual pushing 
             Neutrals.Push_Particle(i, Simulation_Parameters.dt, Grid);
 
@@ -158,13 +159,22 @@ namespace HypiC{
                 z = Grid.Grid_Step * (i + (rand()/RAND_MAX));
                 v = HypiC::Maxwellian_Sampler(Grid.Neutral_Velocity_m_s[i], sqrt(kb * Grid.Neutral_Temperature_K[i] / mass));
                 w = Grid.Delta_ni[i] / Grid.Grid_Step; 
-                z_rel = fabs((Grid.Cell_Center[i] - z)/Grid.Grid_Step);
+
+                //check for cell2 index 
+                if (z < Grid.Grid_Step*i + (Grid.Grid_Step / 2.0)){
+                    c2 = -1;
+                }else{
+                    c2 = 1;
+                }
+
+                
                 // shape factor (s for next cell = z_rel)
+                z_rel = fabs((Grid.Cell_Center[i] - z)/Grid.Grid_Step);
                 s = 1 - z_rel;
                 // calculate partial electric field from this cell and next
                 E_fld = s*Grid.Get_ElectricField(i);
                 // add next cell contribution for all but last cell
-                if(i!=Grid._nElectrons){
+                if((c2 > 0) && (c2 < Grid._nElectrons)){
                     E_fld += z_rel*Grid.Get_ElectricField(i+1);
                 }
 
