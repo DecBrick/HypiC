@@ -36,7 +36,7 @@ namespace HypiC{
         //sum quantities
         this->Discharge_Current += dt * Electrons.Id;
         this->Id_Last = Electrons.Id;
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for (size_t i=0; i<Simulation_Parameters.nCells; ++i){
             this->Neutral_Density_m3[i] += dt*Electrons.Neutral_Density_m3[i];
             this->Neutral_Velocity_m_s[i] += dt*Electrons.Neutral_Velocity_m_s[i];

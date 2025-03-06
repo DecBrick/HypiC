@@ -60,25 +60,25 @@ int main(){
     std::cout << "%%%%%%%%%%%%%%%%%%% Entering Iterations %%%%%%%%%%%%%%%%%%%\n";
     //main loop
     for(size_t i=0; i < Input_Options.nIterations; ++i){
-        std::cout << "Step_Start \n";
+        //std::cout << "Step_Start \n";
         //push heavy species
         Ions = HypiC::Update_Heavy_Species_Ions(Neutrals, Ions, Electrons, Input_Options);
         Neutrals = HypiC::Update_Heavy_Species_Neutrals(Neutrals, Ions, Electrons, Input_Options);
-        std::cout << "Heavy Species\n";
+        //std::cout << "Heavy Species\n";
         //interpolate to grid
         Electrons = HypiC::Particles_to_Grid(Neutrals, Ions, Electrons);
-        std::cout << "Interp to Grid\n";
+        //std::cout << "Interp to Grid\n";
         //update electrons
         Electrons = HypiC::Update_Electrons(Electrons, Neutrals, Ions, Ionization_Rates, Loss_Rates, Input_Options);
-        std::cout << "Electrons\n";
+        //std::cout << "Electrons\n";
         //interpolate electric field to ions 
         //Neutrals = HypiC::Grid_to_Particles_Neutrals(Neutrals, Electrons);
         Ions = HypiC::Grid_to_Particles_Ions(Ions, Electrons);
 
-        std::cout << "Interp to Particles \n";
+        //std::cout << "Interp to Particles \n";
         //update time sum
         Results.Time_Sum(Electrons, Input_Options);
-        std::cout << "Time Sum \n";
+        //std::cout << "Time Sum \n";
         //periodic output
         if (i % Input_Options.Output_Interval == 0){
             std::cout << "!!!!!!! Iteration: " << i+1 << " !!!!!!!\n";
@@ -97,7 +97,7 @@ int main(){
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
 
-    std::cout << "Run time in s was:" << duration.count() << "\n";
+    std::cout << "Run time in ms was:" << duration.count() << "\n";
 
     
 }

@@ -90,7 +90,7 @@ namespace HypiC{
         kb = 1.380649e-23;
         srand(time(NULL));
 
-        #pragma omp parallel for //collapse(2)
+        //#pragma omp parallel for //collapse(2)
         //loop over grid cells
         for(size_t c=0; c<Inputs.nCells; ++c){
             //calculate number of particles per cell and the position
@@ -99,7 +99,7 @@ namespace HypiC{
             //loop over the particles in the cell
             for(size_t p=0; p<Particles_per_cell; ++p){
                 //uniformly sample across cell. 
-                z_particle = z + dz * (rand()/RAND_MAX);
+                z_particle = z + dz * ((double)  rand()/RAND_MAX);
 
                 //calculate initial velocity
                 //sample from maxwellian
@@ -150,7 +150,7 @@ namespace HypiC{
         Ions._ChargetoMassRatio = 1.602176634e-19 / mass; 
         srand(time(NULL));
 
-        #pragma omp parallel for private(z,z_particle,ne,Te,v,w) //collapse(2)
+        //#pragma omp parallel for private(z,z_particle,ne,Te,v,w) //collapse(2)
         //loop over grid cells
         for(size_t c=0; c<Inputs.nCells; ++c){
             //calculate number of particles per cell and the position
@@ -161,7 +161,7 @@ namespace HypiC{
             for(size_t p=0; p<Particles_per_cell; ++p){
                 //uniformly sample
                 //later add to the position 
-                z_particle = z + dz * (rand()/RAND_MAX);
+                z_particle = z + dz * ((double) rand()/RAND_MAX);
 
                 ne = HypiC::Initial_Electron_Density(z_particle, Inputs.Initial_Min_Ion_Density,
                 Inputs.Initial_Max_Ion_Density, Inputs.Discharge_Voltage_V, Inputs.Mass_Flow_Rate_kg_s, 
@@ -227,7 +227,7 @@ namespace HypiC{
         kb = 1.380649e-23;
         srand(time(NULL));
 
-        #pragma omp parallel for private(z,ne,Te,v,EnergyDensity,B,f,Efield)
+        //#pragma omp parallel for private(z,ne,Te,v,EnergyDensity,B,f,Efield)
         //loop over grid cells
         for(size_t c=0; c<Inputs.nCells; ++c){
             //calculate number of particles per cell and the position

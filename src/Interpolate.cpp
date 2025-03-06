@@ -136,7 +136,7 @@ namespace HypiC{
         int cell;
         int cell2;
         
-        #pragma omp parallel for //collapse(2)
+        //#pragma omp parallel for //collapse(2)
         // loop over ions
         for(size_t i=0; i<Ions._nParticles; ++i){
             //grab cells

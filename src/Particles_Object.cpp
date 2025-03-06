@@ -90,7 +90,7 @@ namespace HypiC
 
     void Particles_Object::Velocity_Backstep(double dt){
         //based on the current electric field, set v back by dt/2 to initialize leapfrog
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for (size_t i=0; i<this->_nParticles; ++i){
             this->_Velocities[i] -= (dt/2) * this->_ChargetoMassRatio * this->_ElectricField[i];
         }

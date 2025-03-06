@@ -66,7 +66,7 @@ namespace HypiC{
         //initialize result
         std::vector<double> x(n, 0.0);
 
-        #pragma omp parallel for private(w)
+        //#pragma omp parallel for private(w)
         //enter main loop 
         for (size_t i=1; i < n; i++){
             w = lower_diagonal[i-1] / diagonal[i-1];
@@ -76,7 +76,7 @@ namespace HypiC{
 
         //back substitution 
         x[n-1] = b[n-1] / diagonal[n-1];
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for (int i = n-2; i >= 0; --i){
             x[i] = (b[i] - upper_diagonal[i] * x[i+1]) / diagonal[i];
         }

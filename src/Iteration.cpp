@@ -19,14 +19,25 @@ namespace HypiC{
         int cell2;
 
 
-        #pragma omp parallel for private(z)
+        //#pragma omp parallel for private(z)
         //push the neutrals
         for (size_t i=0; i<Neutrals._nParticles; ++i){
             //first handle ionization for both cells the neutral is attached to 
             if (Ions._Ionization_Flag[Neutrals.get_Cell(i)]){
                 //calculate particle contribution to the cell 
-                nn = (1 - fabs((Neutrals.get_Position(i) - Grid.Get_CellCenter(Neutrals.get_Cell(i))/Grid.Grid_Step))) 
+                nn = (1 - fabs((Neutrals.get_Position(i) - Grid.Get_CellCenter(Neutrals.get_Cell(i)))/Grid.Grid_Step)) 
                 * Neutrals.get_Weight(i) / Grid.Grid_Step;
+                /*if (Neutrals.get_Cell(i) == 125){
+                    std::cout << "-----------\n";
+                    std::cout << Neutrals.get_Position(i) << "\n";
+                    std::cout << Grid.Get_CellCenter(Neutrals.get_Cell(i)) << "\n";
+                    std::cout << Grid.Grid_Step << "\n";
+                    std::cout << fabs((Neutrals.get_Position(i) - Grid.Get_CellCenter(Neutrals.get_Cell(i)))/Grid.Grid_Step) << "\n";
+                    std::cout << nn << "\n";
+                    std::cout << Grid.Get_NeutralDensity(Neutrals.get_Cell(i)) << "\n";
+                    std::cout << Grid.Delta_ni[Neutrals.get_Cell(i)] << "\n";
+                    std::cout <<  Neutrals.get_Weight(i) << "\n";
+                }*/
                 //weight is reduced by a proportional factor 
                 w = Neutrals.get_Weight(i) - (nn/Grid.Get_NeutralDensity(Neutrals.get_Cell(i)))*Grid.Delta_ni[Neutrals.get_Cell(i)] / Grid.Grid_Step;
                 Neutrals.set_Weight(i, w);
@@ -59,7 +70,7 @@ namespace HypiC{
             }
         }
 
-        #pragma omp parallel for reduction(-:Neutrals._nParticles)
+        //#pragma omp parallel for reduction(-:Neutrals._nParticles)
         //enforce neutral boundary conditions
         for (size_t i=n_remove; i>0; --i){
             Neutrals.Remove_Particle(Remove_These[i]);//remove the particle
@@ -77,7 +88,7 @@ namespace HypiC{
         nn = Simulation_Parameters.Mass_Flow_Rate_kg_s / (mass * un);
         srand(time(NULL));
 
-        #pragma omp parallel for private(v,z,w)
+        //#pragma omp parallel for private(v,z,w)
         for (size_t i=0; i<n_remove; ++i){
             //sample from the maxwellian (force positive so resample)
             v = -1;
@@ -86,7 +97,7 @@ namespace HypiC{
             }
             //position is then sampled for distance from the anode 
             //see Birdsall pg 406
-            z = (rand()/RAND_MAX) * v * Simulation_Parameters.dt;
+            z = ((double) rand()/RAND_MAX) * v * Simulation_Parameters.dt;
 
             //weights use the number denisty
             //might need to check the current cell n particles
@@ -99,7 +110,7 @@ namespace HypiC{
 
         n_remove = 0;//reset for ions
 
-        #pragma omp parallel for private(z) reduction(+:n_reflect)
+        //#pragma omp parallel for private(z) reduction(+:n_reflect)
         //push the ions
         for (size_t i=0; i<Ions._nParticles; ++i){
 
@@ -115,7 +126,7 @@ namespace HypiC{
         
         //enforce ion boundary conditions
 
-        #pragma omp parallel for private(current_index) reduction(+:Neutrals._nParticles)
+        //#pragma omp parallel for private(current_index) reduction(+:Neutrals._nParticles)
         for (size_t i=n_reflect; i>0; --i){
             //add to the neutrals with position = 0 and reflected velocity
             //resample from Maxwellian?
@@ -154,9 +165,9 @@ namespace HypiC{
         //ionization particle generation
         for (size_t i=0; i<Grid._nElectrons; ++i){
             //random chance for particle generation
-            if ((Grid.Delta_ni[i]/Grid.Delta_ni_sum) > (rand()/RAND_MAX)){
+            if ((Grid.Delta_ni[i]/Grid.Delta_ni_sum) > ((double) rand()/RAND_MAX)){
                 //determine new particle properties
-                z = Grid.Grid_Step * (i + (rand()/RAND_MAX));
+                z = Grid.Grid_Step * (i + ((double) rand()/RAND_MAX));
                 v = HypiC::Maxwellian_Sampler(Grid.Neutral_Velocity_m_s[i], sqrt(kb * Grid.Neutral_Temperature_K[i] / mass));
                 w = Grid.Delta_ni[i] / Grid.Grid_Step; 
 
@@ -198,7 +209,7 @@ namespace HypiC{
             }
         }
 
-        #pragma omp parallel for private(z) reduction(+:n_remove,n_reflect)
+        //#pragma omp parallel for private(z) reduction(+:n_remove,n_reflect)
         //push the ions
         for (size_t i=0; i<Ions._nParticles; ++i){
             Ions.Push_Particle(i, Simulation_Parameters.dt, Grid);
@@ -217,13 +228,13 @@ namespace HypiC{
             }
         }
         //enforce ion boundary conditions
-        #pragma omp parallel for
+        //#pragma omp parallel for
         //count backwards on the remove so we don't mess up the indices 
         for (size_t i=n_remove; i>0; --i){
             Ions.Remove_Particle(Remove_These[i-1]);//remove the particle
             Remove_These.pop_back();//remove from the remove list
         }
-        #pragma omp parallel for private(current_index)
+       // #pragma omp parallel for private(current_index)
         for (size_t i=n_reflect; i>0; --i){
             //add to the neutrals with position = 0 and reflected velocity
             //resample from Maxwellian?
