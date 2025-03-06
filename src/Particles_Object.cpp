@@ -27,12 +27,13 @@ namespace HypiC
     //template <class fp_type>
     //void Particles_Object<fp_type>::Add_Particle(){
     void Particles_Object::Add_Particle(double init_position, double init_velocity, 
-    double init_weight, size_t init_cell, double init_field){
+    double init_weight, size_t init_cell, int init_cell2, double init_field){
         //add the values
         this->_Positions.push_back(init_position);
         this->_Velocities.push_back(init_velocity);
         this->_Weights.push_back(init_weight);
         this->_CellIndex.push_back(init_cell);
+        this->_Cell2Index.push_back(init_cell2);
         this->_ElectricField.push_back(init_field);
         //increase n particles count
         this->_nParticles+=1;
@@ -49,6 +50,7 @@ namespace HypiC
         this->_Velocities.erase(this->_Velocities.begin() + index);
         this->_Weights.erase(this->_Weights.begin() + index);
         this->_CellIndex.erase(this->_CellIndex.begin() + index);
+        this->_Cell2Index.erase(this->_Cell2Index.begin() + index);
         this->_ElectricField.erase(this->_ElectricField.begin() + index);
 
         //update the number of particles
@@ -68,7 +70,7 @@ namespace HypiC
 
         //update the position 
         this->_Positions[index]+= this->_Velocities[index] * dt;
-        
+
         //update the cell
         //if the distance is more than half a cell width away from the cell center
         if (fabs(this->_Positions[index] - Electrons.Cell_Center[this->_CellIndex[index]]) > (Electrons.Grid_Step / 2.0)){
@@ -76,6 +78,10 @@ namespace HypiC
             //the static cast accounts for the number of cells it has traveled 
             this->_CellIndex[index] += ((this->_Velocities[index] > 0.0) - (this->_Velocities[index] < 0.0)) * 
             static_cast<size_t>((fabs(this->_Positions[index] - Electrons.Cell_Center[this->_CellIndex[index]]) / Electrons.Grid_Step)+0.5);
+        }
+        //update cell2 index (either +-1 dependening on relative position), accounts for new cell 
+        if ((this->_Positions[index] - Electrons.Cell_Center[this->_CellIndex[index]]) * this->_Cell2Index[index] < 0){
+            this->_Cell2Index[index] *=-1;//flip the sign
         }
     }
 
@@ -92,6 +98,9 @@ namespace HypiC
     }
     void Particles_Object::set_Velocity(size_t index, double value){
         this->_Velocities[index] = value;
+    }
+    void Particles_Object::set_Weight(size_t index, double value){
+        this->_Weights[index] = value;
     }
     
     void Particles_Object::set_ElectricField(size_t index, double value){
@@ -110,6 +119,9 @@ namespace HypiC
     }
     size_t Particles_Object::get_Cell(size_t index){
         return this->_CellIndex[index];
+    }
+    int Particles_Object::get_Cell2(size_t index){
+        return this->_Cell2Index[index];
     }
     double Particles_Object::get_ElectricField(size_t index){
         return this->_ElectricField[index];

@@ -16,11 +16,32 @@ namespace HypiC{
         double u_Th;
         double nn;
         double w;
+        int cell2;
+
 
         #pragma omp parallel for private(z)
         //push the neutrals
         for (size_t i=0; i<Neutrals._nParticles; ++i){
-            //push the neutrals
+            //first handle ionization for both cells the neutral is attached to 
+            if (Ions._Ionization_Flag[Neutrals.get_Cell(i)]){
+                //calculate particle contribution to the cell 
+                nn = (1 - fabs((Neutrals.get_Position(i) - Grid.Get_CellCenter(Neutrals.get_Cell(i))/Grid.Grid_Step))) 
+                * Neutrals.get_Weight(i) / Grid.Grid_Step;
+                //weight is reduced by a proportional factor 
+                w = Neutrals.get_Weight(i) - (nn/Grid.Get_NeutralDensity(Neutrals.get_Cell(i)))*Grid.Delta_ni[Neutrals.get_Cell(i)] / Grid.Grid_Step;
+                Neutrals.set_Weight(i, w);
+            }
+            cell2 = Neutrals.get_Cell(i) + Neutrals.get_Cell2(i);
+            if (Ions._Ionization_Flag[cell2]){
+                //calculate particle contribution to the cell 
+                nn = (1 - fabs((Neutrals.get_Position(i) - Grid.Get_CellCenter(cell2)/Grid.Grid_Step))) 
+                * Neutrals.get_Weight(i) / Grid.Grid_Step;
+                //weight is reduced by a proportional factor 
+                w = Neutrals.get_Weight(i) - (nn/Grid.Get_NeutralDensity(cell2))*Grid.Delta_ni[cell2] / Grid.Grid_Step;
+                Neutrals.set_Weight(i, w);
+            }
+
+            //actual pushing 
             Neutrals.Push_Particle(i, Simulation_Parameters.dt, Grid);
 
             //check outflow condition
@@ -72,7 +93,7 @@ namespace HypiC{
 
             //might need the grid methods for adding the electron quantities, however, this may get updated before the next
             //time step so not matter too much
-            Neutrals.Add_Particle(z, v, w, 0, 0);
+            Neutrals.Add_Particle(z, v, w, 0, 1, 0);
         }
 
         n_remove = 0;//reset for ions
@@ -98,7 +119,7 @@ namespace HypiC{
             //add to the neutrals with position = 0 and reflected velocity
             //resample from Maxwellian?
             current_index = Reflect_These[i-1];
-            Neutrals.Add_Particle(0, -1 * Ions.get_Position(current_index), Ions.get_Weight(current_index), 0, 
+            Neutrals.Add_Particle(0, -1 * Ions.get_Position(current_index), Ions.get_Weight(current_index), 0, 1,
             Ions.get_ElectricField(current_index));
             Neutrals._nParticles += 1; //add to neutrals
 
@@ -112,6 +133,7 @@ namespace HypiC{
         size_t n_remove = 0;
         size_t n_reflect = 0;
         size_t current_index;
+        int c2;
         double z;
         double v;
         double mass;
@@ -120,6 +142,51 @@ namespace HypiC{
         double u_Th;
         double nn;
         double w;
+        double z_rel;
+        double s;
+        double E_fld;
+
+
+        mass = 131.29 * 1.66053907e-27;//for Xe
+
+        srand(time(NULL));
+        //ionization particle generation
+        for (size_t i=0; i<Grid._nElectrons; ++i){
+            //random chance for particle generation
+            if ((Grid.Delta_ni[i]/Grid.Delta_ni_sum) > (rand()/RAND_MAX)){
+                //determine new particle properties
+                z = Grid.Grid_Step * (i + (rand()/RAND_MAX));
+                v = HypiC::Maxwellian_Sampler(Grid.Neutral_Velocity_m_s[i], sqrt(kb * Grid.Neutral_Temperature_K[i] / mass));
+                w = Grid.Delta_ni[i] / Grid.Grid_Step; 
+                z_rel = fabs((Grid.Cell_Center[i] - z)/Grid.Grid_Step);
+                // shape factor (s for next cell = z_rel)
+                s = 1 - z_rel;
+                // calculate partial electric field from this cell and next
+                E_fld = s*Grid.Get_ElectricField(i);
+                // add next cell contribution for all but last cell
+                if(i!=Grid._nElectrons){
+                    E_fld += z_rel*Grid.Get_ElectricField(i+1);
+                }
+
+                //check for cell2 index 
+                if (z < Grid.Grid_Step*i + (Grid.Grid_Step / 2.0)){
+                    c2 = -1;
+                }else{
+                    c2 = 1;
+                }
+
+                //add new particle
+                Ions.Add_Particle(z,v,w,i,c2, E_fld);
+
+                //set flag for neutrals to be reduced
+                Ions._Ionization_Flag[i] = true;
+
+            }
+            else{
+                //set flag for neutrals to be reduced
+                Ions._Ionization_Flag[i] = false;
+            }
+        }
 
         #pragma omp parallel for private(z) reduction(+:n_remove,n_reflect)
         //push the ions
@@ -151,7 +218,7 @@ namespace HypiC{
             //add to the neutrals with position = 0 and reflected velocity
             //resample from Maxwellian?
             current_index = Reflect_These[i-1];
-            Neutrals.Add_Particle(0, -1 * Ions.get_Position(current_index), Ions.get_Weight(current_index), 0, Ions.get_ElectricField(current_index));
+            Neutrals.Add_Particle(0, -1 * Ions.get_Position(current_index), Ions.get_Weight(current_index), 0, 1, Ions.get_ElectricField(current_index));
 
             //remove the particle from the ions
             Ions.Remove_Particle(current_index);
@@ -163,6 +230,13 @@ namespace HypiC{
 
     HypiC::Electrons_Object Update_Electrons(HypiC::Electrons_Object Electrons, HypiC::Particles_Object Neutrals, HypiC::Particles_Object Ions, HypiC::Rate_Table_Object Ionization_Rates, HypiC::Rate_Table_Object Collision_Loss_Rates, HypiC::Options_Object Simulation_Parameters){ //,double t){
         
+        //reset the ionization counter
+        for (size_t i=0; i<Electrons._nElectrons; ++i){
+            if (Ions._Ionization_Flag[i]){
+                Electrons.Delta_ni[i] = 0.0;
+            }
+        }
+
         //first update the electron mobility and Temperature
         Electrons.Update_Mobility(Simulation_Parameters, Ionization_Rates);
 

@@ -26,7 +26,7 @@ TEST_CASE(Add_Remove_Particles){
     HypiC::Particles_Object Part = HypiC::Particles_Object();
 
     //check that we can add particles 
-    Part.Add_Particle(1.0, 1000, 1, 0, 10000);
+    Part.Add_Particle(1.0, 1000, 1, 0, 1, 10000);
 
     //pull properties
     //also is testing accessor methods
@@ -35,6 +35,7 @@ TEST_CASE(Add_Remove_Particles){
     ASSERT_NEAR(Part.get_Velocity(0), 1000.0, Tolerance);
     ASSERT_NEAR(Part.get_Weight(0), 1.0, Tolerance);
     ASSERT(Part.get_Cell(0) == 0);
+    ASSERT(Part.get_Cell2(0) == 1);
     ASSERT_NEAR(Part.get_ElectricField(0), 10000.0, Tolerance);
 
     //check that we can remove particles
@@ -53,8 +54,8 @@ TEST_CASE(Update_Particles){
     //initialize and add particle
     HypiC::Particles_Object Ion_Test = HypiC::Particles_Object();
     HypiC::Particles_Object Neutral_Test = HypiC::Particles_Object();
-    Neutral_Test.Add_Particle(0.6, 1000, 1, 1, 10000);
-    Ion_Test.Add_Particle(0.6, 1000, 1, 1, 10000);
+    Neutral_Test.Add_Particle(0.6, 1000, 1, 1, -1, 10000);
+    Ion_Test.Add_Particle(0.6, 1000, 1, 1, -1, 10000);
 
     //initialize a basic grid [0.25, 0.75, 1.25]
     HypiC::Electrons_Object Grid = HypiC::Electrons_Object();
@@ -70,12 +71,13 @@ TEST_CASE(Update_Particles){
     ASSERT_NEAR(Neutral_Test.get_Position(0), 0.6 + 1e-6, Tolerance);
     ASSERT_NEAR(Neutral_Test.get_Velocity(0), 1000.0, Tolerance);
     ASSERT(Neutral_Test.get_Cell(0) == 1);
+    ASSERT(Neutral_Test.get_Cell2(0) == -1);
 
 
     //add three more neutrals to test the cell index update
-    Neutral_Test.Add_Particle(0.49, 1e3, 1000, 0, 0.0);
-    Neutral_Test.Add_Particle(0.51, -1e3, 1000, 1, 0.0);
-    Neutral_Test.Add_Particle(0.49, 5e4, 1000, 0, 0.0);
+    Neutral_Test.Add_Particle(0.49, 1e3, 1000, 0, 1, 0.0);
+    Neutral_Test.Add_Particle(0.51, -1e3, 1000, 1, -1, 0.0);
+    Neutral_Test.Add_Particle(0.49, 5e4, 1000, 0, 1, 0.0);
 
     //update these particles
     Neutral_Test.Push_Particle(1, 2e-5, Grid);
@@ -86,6 +88,21 @@ TEST_CASE(Update_Particles){
     ASSERT(Neutral_Test.get_Cell(1) == 1);
     ASSERT(Neutral_Test.get_Cell(2) == 0);
     ASSERT(Neutral_Test.get_Cell(3) == 2);
+    ASSERT(Neutral_Test.get_Cell2(1) == -1);
+    ASSERT(Neutral_Test.get_Cell2(2) == 1);
+    ASSERT(Neutral_Test.get_Cell2(3) == 1);
+
+    //add two more particles to test cell2 update 
+    Neutral_Test.Add_Particle(0.24, 1e3, 1000, 0, -1, 0.0);
+    Neutral_Test.Add_Particle(0.26, -1e3, 1000, 1, 1, 0.0);
+
+    //update these particles 
+    Neutral_Test.Push_Particle(4, 2e-5, Grid);
+    Neutral_Test.Push_Particle(5, 2e-5, Grid);
+
+    //check that cell2 indexes have correctly updated
+    ASSERT(Neutral_Test.get_Cell2(4) == 1);
+    ASSERT(Neutral_Test.get_Cell2(5) == -1);
 
     //set Xe charge to mass ratio 
     Ion_Test._ChargetoMassRatio = 1.6e-19 / (131.29 * 1.67e-27);
@@ -96,6 +113,7 @@ TEST_CASE(Update_Particles){
     ASSERT_NEAR(Ion_Test.get_Velocity(0), 1000 + 1.6e-24 / (131.29 * 1.67e-27), Tolerance);
     ASSERT_NEAR(Ion_Test.get_Position(0), 0.6 + 1e-9 *(1000 + 1.6e-24 / (131.29 * 1.67e-27)), Tolerance);
     ASSERT(Ion_Test.get_Cell(0) == 1);
+    ASSERT(Ion_Test.get_Cell2(0) == -1);
 
     //check set methods
     Ion_Test.set_Position(0, 2.0);

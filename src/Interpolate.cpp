@@ -28,15 +28,18 @@ namespace HypiC{
                     double N_den = s*w /dz;
                     // calculate partial neutral flux for this cell and next
                     double N_flux = s*(w/dz)*Neutrals.get_Velocity(i);
+                    // calculate energy term
+                    double N_energy = s*(w/dz)*pow(Neutrals.get_Velocity(i),2);
                     // add values to cells' summations
-                    Electrons.Update_From_Neutrals(c,N_den,N_flux);
+                    Electrons.Update_From_Neutrals(c,N_den,N_flux,N_energy);
 
                     if(c!=Electrons._nElectrons-1){
                         // repeat for next cell
                         // shape = z_rel
                         N_den = z_rel*w/dz;
                         N_flux = z_rel*(w/dz)*Neutrals.get_Velocity(i);
-                        Electrons.Update_From_Neutrals(c+1,N_den,N_flux);
+                        N_energy = s*(w/dz)*pow(Neutrals.get_Velocity(i),2);
+                        Electrons.Update_From_Neutrals(c+1,N_den,N_flux,N_energy);
                     }
                     break;
                 }
@@ -123,8 +126,6 @@ namespace HypiC{
         #pragma omp parallel for //collapse(2)
         // loop over ions
         for(size_t i=0; i<Ions._nParticles; ++i){
-            double e_den;
-            double e_tmp;
             double E_fld;
             double dz = Electrons.Grid_Step;
             double z_p = Ions.get_Position(i);
@@ -137,16 +138,10 @@ namespace HypiC{
                 if(z_rel < 1){
                     // shape factor (s for next cell = z_rel)
                     double s = 1 - z_rel;
-                    // calculate partial electron density from this cell and next
-                    e_den = s*Electrons.Get_PlasmaDensity(c);
-                    // calculate partial electron temperature from this cell and next
-                    e_tmp = s*Electrons.Get_ElectronTemperature(c);
                     // calculate partial electric field from this cell and next
                     E_fld = s*Electrons.Get_ElectricField(c);
                     // add next cell contribution for all but last cell
                     if(c!=Electrons._nElectrons){
-                        e_den += z_rel*Electrons.Get_PlasmaDensity(c+1);
-                        e_tmp += z_rel*Electrons.Get_ElectronTemperature(c+1);
                         E_fld += z_rel*Electrons.Get_ElectricField(c+1);
                     }
                     break;

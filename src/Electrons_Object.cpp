@@ -54,6 +54,8 @@ namespace HypiC
         this->Neutral_Temperature_K.push_back(0.0);
         this->Ion_Velocity_m_s.push_back(0.0);
         this->Ion_Temperature_eV.push_back(0.0);
+        this->Delta_ni.push_back(0.0); 
+        this->Ionize_Flag.push_back(false);
 
 
         //increase n particles count
@@ -71,12 +73,20 @@ namespace HypiC
         this->Ion_Velocity_m_s[index] = ion_velocity;
     }
 
+    void Electrons_Object::Update_Delta_ni(size_t index, double dni){
+        this->Delta_ni[index] += dni;
+    }
+
     double Electrons_Object::Get_CellCenter(size_t index){
         return this->Cell_Center[index];
     }
     
     double Electrons_Object::Get_PlasmaDensity(size_t index){
         return this->Plasma_Density_m3[index];
+    }
+
+    double Electrons_Object::Get_NeutralDensity(size_t index){
+        return this->Neutral_Density_m3[index];
     }
 
     double Electrons_Object::Get_ElectronTemperature(size_t index){
@@ -100,9 +110,10 @@ namespace HypiC
         this->Ion_Velocity_m_s.resize(nCells, 0.0);
     }
 
-    void Electrons_Object::Update_From_Neutrals(size_t index, double neutral_density, double neutral_velocity){
+    void Electrons_Object::Update_From_Neutrals(size_t index, double neutral_density, double neutral_velocity, double neutral_energy){
         this->Neutral_Density_m3[index] += neutral_density;
         this->Neutral_Velocity_m_s[index] += neutral_velocity;
+        this->Neutral_Temperature_K[index] += neutral_energy;
     }
 
     void Electrons_Object::Update_From_Ions(size_t index, double plasma_density, double current_density, double ion_velocity){
@@ -123,6 +134,9 @@ namespace HypiC
             this->Ion_Velocity_m_s[i] /= this->Plasma_Density_m3[i];
             //apply charge factor to current density
             this->Ion_Current_Density[i] *= 1.602176634e-19;
+            //apply sum term to temperature
+            this->Neutral_Temperature_K[i] -= pow(this->Neutral_Velocity_m_s[i], 2);
+            this->Neutral_Temperature_K[i] *= 131.29 * 1.66053907e-27 / (2 * 1.380649e-23 * this->Neutral_Density_m3[i]);//mass for Xe
         }
     }
 
@@ -130,6 +144,9 @@ namespace HypiC
         double Elec_Cycl_Freq;
         double Beta;
         double Omega;
+        
+        //set timestep sum to 0
+        this->Delta_ni_sum = 0.0;
         
         #pragma omp parallel for private(Elec_Cycle_Freq,Beta,Omega)
         for(size_t c=0; c<this->_nElectrons; ++c){
@@ -154,6 +171,9 @@ namespace HypiC
             }
             //update the ionization rate
             this->Ionization_Rate[c] = Ionization_Rates.interpolate(1.5 * this->Electron_Temperature_eV[c]);
+            this->Delta_ni[c] += this->Plasma_Density_m3[c] * this->Neutral_Density_m3[c] * this->Ionization_Rate[c] * this->Grid_Step * Simulation_Parameters.dt;
+            this->Delta_ni_sum += this->Delta_ni[c];
+
             //update the anomalous frequency 
             Elec_Cycl_Freq = 1.602176634e-19 * this->Magnetic_Field_T[c] / 9.10938356e-31;
 

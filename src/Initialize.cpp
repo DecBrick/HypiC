@@ -79,6 +79,7 @@ namespace HypiC{
         double mass;
         double kb;
         double un;
+        int c2;
 
         //calculate grid increment (assuming uniformly spaced)
         dz = Inputs.Domain_Length_m / Inputs.nCells;
@@ -94,7 +95,7 @@ namespace HypiC{
         for(size_t c=0; c<Inputs.nCells; ++c){
             //calculate number of particles per cell and the position
             Particles_per_cell = Inputs.N_Neutrals / Inputs.nCells;
-            z = dz * c;
+            z = dz * c;//left edge of cell 
             //loop over the particles in the cell
             for(size_t p=0; p<Particles_per_cell; ++p){
                 //uniformly sample across cell. 
@@ -110,9 +111,15 @@ namespace HypiC{
                 nn = Initial_Neutral_Density(z_particle, mass, un, Inputs.Mass_Flow_Rate_kg_s, Inputs.Channel_Length_m,
                 Inputs.Channel_Area_m2);
                 w = (nn / Particles_per_cell) * dz;
-
+                
+                //check for cell2 index 
+                if (z_particle < z + (dz / 2.0)){
+                    c2 = -1;
+                }else{
+                    c2 = 1;
+                }
                 //Add the particle
-                Neutrals.Add_Particle(z_particle, v, w, c, 0.0);
+                Neutrals.Add_Particle(z_particle, v, w, c, c2, 0.0);
             }
         }
 
@@ -131,6 +138,7 @@ namespace HypiC{
         double w;
         double mass;
         double kb;
+        int c2;
 
         //calculate grid increment (assuming uniformly spaced)
         dz = Inputs.Domain_Length_m / Inputs.nCells;
@@ -173,9 +181,19 @@ namespace HypiC{
                 //see https://smileipic.github.io/Smilei/Understand/algorithms.html
                 w = (ne / Particles_per_cell) * dz;
 
+                //check for cell2 index 
+                if (z_particle < z + (dz / 2.0)){
+                    c2 = -1;
+                }else{
+                    c2 = 1;
+                }
+
                 //Add the particle
-                Ions.Add_Particle(z, v, w, c, 0);
+                Ions.Add_Particle(z, v, w, c, c2, 0);
             }
+
+            //add an ionization flag
+            Ions._Ionization_Flag.push_back(false);
         }
 
         //return
