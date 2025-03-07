@@ -95,8 +95,8 @@ namespace HypiC{
         n_anode = mdot / (mass * un * Ach);
         n_cathode = 0.01 * n_anode;
         //from HallThruster.jl 
-        //see https://um-pepl.github.io/HallThruster.jl/dev/initialization/
-        return 0.5 * (n_anode + n_cathode + (n_anode - n_cathode) * tanh((z - 0.5 * Lch)/(Lch / 6.0)));
+        //see https://um-pepl.github.io/HallThruster.jl/dev/explanation/initialization/
+        return 0.5 * (n_anode + n_cathode + (n_cathode - n_anode) * tanh((z - 0.5 * Lch)/(Lch / 24.0)));
     };
 
     double Initial_Electron_Temperature(double z, double Te_Anode, double Te_Cathode, double Te_Max, double Lch, double z_max){
