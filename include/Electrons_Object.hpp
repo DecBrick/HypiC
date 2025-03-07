@@ -63,6 +63,7 @@ namespace HypiC{
             double Get_NeutralDensity(size_t index);
             double Get_ElectronTemperature(size_t index);
             double Get_ElectricField(size_t index);
+            double Get_Potential(size_t index);
             void Clear_Out_Particles();
             void Update_From_Neutrals(size_t index, double neutral_density, double neutral_velocity, double neutral_energy);
             void Update_From_Ions(size_t index, double plasma_density, double current_density, double ion_velocity);

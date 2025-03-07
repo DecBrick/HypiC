@@ -110,6 +110,24 @@ namespace HypiC
         this->_ElectricField[index] = value;
     }
 
+    void Particles_Object::set_Reinjection(double Weight, double E_avg){
+        this->_ReinjectWeight = Weight;
+        this->_ReinjectEnergy = E_avg;
+    }
+
+    void Particles_Object::set_WBar(double value){
+        this->_WBar = value;
+    }
+    void Particles_Object::set_WInject(double value){
+        this->_wInject = value;
+    }
+    void Particles_Object::set_WDiffuse(double value){
+        this->_wDiffuse = value;
+    }
+    void Particles_Object::set_WRecombination(double value){
+        this->_wRecombination = value;
+    }
+
     //accessor methods
     double Particles_Object::get_Position(size_t index){
         return this->_Positions[index];

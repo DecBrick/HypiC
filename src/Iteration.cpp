@@ -16,8 +16,21 @@ namespace HypiC{
         double u_Th;
         double nn;
         double w;
+        double t;
+        double T;
         int cell2;
+        double w_reinject = 0.0;
+        double E_reinject = 0.0;
+        double W_gen;
+        double w_0_sum = 0.0;
+        size_t N_0 = 0;
+        size_t N_mass;
+        size_t N_diffuse;
+        size_t N_recombination;
 
+
+        mass = 131.29 * 1.66053907e-27;//for Xe
+        kb = 1.380649e-23;
 
         //#pragma omp parallel for private(z)
         //push the neutrals
@@ -53,6 +66,15 @@ namespace HypiC{
                     Neutrals.set_Weight(i, w);
                 }
             }
+            //total the neutrals in the first cell and time average
+            //see Eq. 2.33 of Dominguez Vazquez thesis (2019)
+            if ((Neutrals.get_Cell(i) == 0) || (cell2 == 0)){
+                N_0 +=1;
+                w_0_sum += Neutrals.get_Weight(i);
+            }
+            Neutrals.set_WBar((49 * Neutrals._WBar + w_0_sum) / 50);
+
+
             //actual pushing 
             Neutrals.Push_Particle(i, Simulation_Parameters.dt, Grid);
 
@@ -63,10 +85,12 @@ namespace HypiC{
             }
             //check and enforce reflection 
             if (z < 0){
-                //set the position to 0 and switch sign on the velocity
-                //resample from Maxwellian? 
-                Neutrals.set_Position(i, 0.0);
-                Neutrals.set_Velocity(i, -1.0 * Neutrals.get_Velocity(i)); 
+                //assume completly diffuse reflection. Add weights and energy for this population
+                w_reinject += Neutrals.get_Weight(i);
+                E_reinject += Neutrals.get_Weight(i) * 0.5 * mass * pow(Neutrals.get_Velocity(i),2.0);
+
+                //mark the current particle for removal 
+                Remove_These.push_back(i);
             }
         }
 
@@ -79,63 +103,72 @@ namespace HypiC{
         }
         
         //injection
-        //sample from Maxwellian and place in the region using the netural velocity. 
-        //First pass is to inject everytime a particle is removed
-        mass = 131.29 * 1.66053907e-27;//for Xe
-        kb = 1.380649e-23;
-        un = sqrt(2 * kb * Simulation_Parameters.Initial_Neutral_Temperature_K / (M_PI * mass));
-        u_Th = sqrt(kb * Simulation_Parameters.Initial_Neutral_Temperature_K / mass);
-        nn = Simulation_Parameters.Mass_Flow_Rate_kg_s / (mass * un);
+        //have three populations: inflow, diffuse neutrals, and ion recombination
+        //for the inflow, the area terms cancel so flux = mass flow/m 
+        
+        //first calculate generation weight
+        W_gen = Neutrals._WBar * (N_0 / 100); //target 500 particles per cell for neutrals, 2x for 1D accounting (particle touches 2 cells)
+        //now calculate number of particles generated for each population
+        N_mass = ((size_t) (Simulation_Parameters.Mass_Flow_Rate_kg_s * Simulation_Parameters.dt / mass + Neutrals._wInject)/ (W_gen));
+        N_diffuse = ((size_t) (w_reinject+Neutrals._wDiffuse) / W_gen);
+        N_recombination = ((size_t) (Ions._ReinjectWeight+Neutrals._wRecombination) / W_gen);
+        
+        //tally remaining weights for next timestep 
+        Neutrals.set_WInject((Simulation_Parameters.Mass_Flow_Rate_kg_s * Simulation_Parameters.dt / mass + Neutrals._wInject) - W_gen * N_mass);
+        Neutrals.set_WDiffuse((w_reinject+Neutrals._wDiffuse) - W_gen * N_diffuse);
+        Neutrals.set_WRecombination((Ions._ReinjectWeight+Neutrals._wRecombination) - W_gen * N_recombination);
+
+        //sample for injection
         srand(time(NULL));
-
-        //#pragma omp parallel for private(v,z,w)
-        for (size_t i=0; i<n_remove; ++i){
-            //sample from the maxwellian (force positive so resample)
-            v = -1;
-            while (v < 0){
-                v = HypiC::Maxwellian_Sampler(un, u_Th);
+        T = Simulation_Parameters.Initial_Neutral_Temperature_K;//purly  wall temperature 
+        for (size_t i=0; i<N_mass; ++i){
+            //sample time fraction
+            t = ((double)  rand()/RAND_MAX) * Simulation_Parameters.dt;
+            //sample velocity, inject at thermal speed
+            v = HypiC::Injection_Sampler(sqrt(2*kb * T / mass), T);
+            //position follows
+            z = v * t;
+            //add the particle, with a switch for the side of the cell 
+            if (z > 0.5 * Grid.Grid_Step){
+                Neutrals.Add_Particle(z, v, W_gen, 0, 1, 0);
+            }else{
+                Neutrals.Add_Particle(z, v, W_gen, 0, -1, 0);
             }
-            //position is then sampled for distance from the anode 
-            //see Birdsall pg 406
-            z = ((double) rand()/RAND_MAX) * v * Simulation_Parameters.dt;
-
-            //weights use the number denisty
-            //might need to check the current cell n particles
-            w = nn * (Simulation_Parameters.Domain_Length_m / Simulation_Parameters.nCells) / (Simulation_Parameters.N_Neutrals / Simulation_Parameters.nCells);
-
-            //might need the grid methods for adding the electron quantities, however, this may get updated before the next
-            //time step so not matter too much
-            Neutrals.Add_Particle(z, v, w, 0, 1, 0);
         }
 
-        n_remove = 0;//reset for ions
-
-        //#pragma omp parallel for private(z) reduction(+:n_reflect)
-        //push the ions
-        for (size_t i=0; i<Ions._nParticles; ++i){
-
-
-            //check outflow condition
-            z = Ions.get_Position(i);
-
-            if (z < 0){
-                Reflect_These.push_back(i);
-                n_reflect += 1;
+        //sample for diffusion
+        T = E_reinject / 2.0;
+        for (size_t i=0; i<N_diffuse; ++i){
+            //sample time fraction
+            t = ((double)  rand()/RAND_MAX) * Simulation_Parameters.dt;
+            //sample velocity
+            v = HypiC::Injection_Sampler(0, T);
+            //position follows
+            z = v * t;
+            //add the particle, with a switch for the side of the cell 
+            if (z > 0.5 * Grid.Grid_Step){
+                Neutrals.Add_Particle(z, v, W_gen, 0, 1, 0);
+            }else{
+                Neutrals.Add_Particle(z, v, W_gen, 0, -1, 0);
+            }
+        }
+        //sample for recombination
+        T = Simulation_Parameters.Initial_Neutral_Temperature_K;//purly  wall temperature 
+        for (size_t i=0; i<N_recombination; ++i){
+            //sample time fraction
+            t = ((double)  rand()/RAND_MAX) * Simulation_Parameters.dt;
+            //sample velocity
+            v = HypiC::Injection_Sampler(0, T);
+            //position follows
+            z = v * t;
+            //add the particle, with a switch for the side of the cell 
+            if (z > 0.5 * Grid.Grid_Step){
+                Neutrals.Add_Particle(z, v, W_gen, 0, 1, 0);
+            }else{
+                Neutrals.Add_Particle(z, v, W_gen, 0, -1, 0);
             }
         }
         
-        //enforce ion boundary conditions
-
-        //#pragma omp parallel for private(current_index) reduction(+:Neutrals._nParticles)
-        for (size_t i=n_reflect; i>0; --i){
-            //add to the neutrals with position = 0 and reflected velocity
-            //resample from Maxwellian?
-            current_index = Reflect_These[i-1];
-            Neutrals.Add_Particle(0, -1 * Ions.get_Position(current_index), Ions.get_Weight(current_index), 0, 1,
-            Ions.get_ElectricField(current_index));
-            Neutrals._nParticles += 1; //add to neutrals
-
-        }
         return Neutrals;
     };
     
@@ -157,6 +190,8 @@ namespace HypiC{
         double z_rel;
         double s;
         double E_fld;
+        double w_reinject;
+        double E_reinject;
 
 
         mass = 131.29 * 1.66053907e-27;//for Xe
@@ -234,17 +269,24 @@ namespace HypiC{
             Ions.Remove_Particle(Remove_These[i-1]);//remove the particle
             Remove_These.pop_back();//remove from the remove list
         }
+        w_reinject = 0.0;
+        E_reinject = 0.0;
        // #pragma omp parallel for private(current_index)
         for (size_t i=n_reflect; i>0; --i){
-            //add to the neutrals with position = 0 and reflected velocity
-            //resample from Maxwellian?
+            //the particle to be reflected
             current_index = Reflect_These[i-1];
-            Neutrals.Add_Particle(0, -1 * Ions.get_Position(current_index), Ions.get_Weight(current_index), 0, 1, Ions.get_ElectricField(current_index));
+            //account for reinject weight and energy
+            w_reinject += Ions.get_Weight(current_index);
+            E_reinject += Ions.get_Weight(current_index) * (0.5*mass*pow(Ions.get_Velocity(current_index), 2.0) + 1.6e-19 * (Grid.Get_Potential(0) - Simulation_Parameters.Discharge_Voltage_V));
+
 
             //remove the particle from the ions
             Ions.Remove_Particle(current_index);
             Remove_These.pop_back();//remove from the reflect list
         }
+
+        //assign the reinject quantities
+        Ions.set_Reinjection(w_reinject, E_reinject / w_reinject);
 
         return Ions;
     };

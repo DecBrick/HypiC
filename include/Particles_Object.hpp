@@ -25,7 +25,13 @@ namespace HypiC{
             std::vector<int> _Cell2Index;
             std::vector<double> _ElectricField;
             std::vector<bool> _Ionization_Flag;
-            double _ChargetoMassRatio = 0;
+            double _ChargetoMassRatio = 0.0;
+            double _ReinjectWeight = 0.0;
+            double _ReinjectEnergy = 0.0;
+            double _WBar = 0.0;
+            double _wInject =0.0;
+            double _wDiffuse =0.0;
+            double _wRecombination =0.0;
             //construction/destruction methods
             Particles_Object();
             ~Particles_Object();
@@ -38,6 +44,11 @@ namespace HypiC{
             void set_Velocity(size_t index, double value);
             void set_Weight(size_t index, double value);
             void set_ElectricField(size_t index, double value);
+            void set_Reinjection(double weight, double E_avg);
+            void set_WBar(double value);
+            void set_WInject(double value);
+            void set_WDiffuse(double value);
+            void set_WRecombination(double value);
             void Velocity_Backstep(double dt);
             //accessor methods
             double get_Position(size_t index);

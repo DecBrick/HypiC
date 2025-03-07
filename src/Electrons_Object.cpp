@@ -97,6 +97,10 @@ namespace HypiC
         return this->Electric_Field_V_m[index];
     }
 
+    double Electrons_Object::Get_Potential(size_t index){
+        return this->Potential[index];
+    }
+
     void Electrons_Object::Clear_Out_Particles(){
         size_t nCells = this->_nElectrons;
         this->Neutral_Density_m3.clear();
@@ -158,7 +162,7 @@ namespace HypiC
                 std::cout << c << "\n";
                 std::cout << this->Electron_Temperature_eV[c] << "\n";
                 std::cout << this->Plasma_Density_m3[c] << "\n";
-                //throw std::invalid_argument("Temperature too high");
+                throw std::invalid_argument("Temperature too high");
             }
             //P = n * e * T
             this->Electron_Pressure[c] =  (2.0/3.0) * 1.602176634e-19 * this->EnergyDensity[c];

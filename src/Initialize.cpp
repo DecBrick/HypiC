@@ -13,6 +13,65 @@ namespace HypiC{
         return Dist(gen);
     };
 
+    double Injection_Sampler(double mu, double T){
+        double kb = 1.23e-23;
+        double mass = 131.29 * 1.66053907e-27;
+        double c = mass / (2*kb * T);//for Xe
+        
+        //see section 2.2.5.1.1 from Dominguez Vazquez thesis
+        //doing the inverse CDF (integrand from 0 to x), the function we need to root find is 
+        //@(x) -(sqrt(pi)*sqrt(c)*mu*erf(sqrt(c)*(mu-x)) + exp(-c*(mu-x)^2)) / (2*c) + (sqrt(M_PI/c)*mu*erf(sqrt(c) * mu)/2 + exp(-c * pow(mu,2)/(2*c))) - rand(0-1)
+        //note that we ignore the contstant normalization factor as it divides out under Newton's method
+
+        double tol = 1e-10;
+        double s;
+        double d;
+        double f;
+        double f_prime;
+        double f_a;
+        double x;
+        double v_min;
+        double v_max;
+        int sign_a;
+        int sign_x;
+
+        //calculate bounds
+        v_max = 4 * sqrt(kb*T/mass);
+        v_min = std::max(0.0, mu-v_max);
+        v_max += mu;
+
+        //sample from 0 to 1 
+        srand(time(NULL));
+        //account for constant from lower bound 
+        s = ((double)  rand()/RAND_MAX) - (sqrt(M_PI/c)*mu*erf(sqrt(c) * mu)/2.0 + exp(-c * pow(mu,2)/(2*c)));
+        //initialize in middle of bounds
+        x = (v_max + v_min) /2.0;
+        d = 1;
+        
+        //zero finding loop 
+        while (fabs(d) < tol){
+            f = -(sqrt(M_PI)*sqrt(c)*mu*erf(sqrt(c)*(mu-x)) + exp(-c*pow((mu-x),2)) / (2.0*c)) - s;
+            f_prime = x * exp(-c * pow(x-mu, 2));
+            d = -f/f_prime;
+            if ((x+d >= v_min) && (x+d <= v_max)){
+                x += d; 
+            }else{//bisect
+                f_a = -(sqrt(M_PI)*sqrt(c)*mu*erf(sqrt(c)*(mu-v_min)) + exp(-c*pow((mu-v_min),2)) / (2.0*c)) - s;
+                sign_a = (f_a > 0) - (f_a < 0);
+                sign_x = (x > 0) - (x < 0);
+                if (sign_a == sign_x){
+                    v_min = x; 
+                }else{
+                    v_max = x;
+                }
+                x = (v_min + v_max) / 2.0;
+            }
+            
+        }
+
+        return x;
+    }
+
     double Initial_Magnetic_Field(double B_max, double Lch, double z){
         double B;
         if (z < Lch){
@@ -80,6 +139,7 @@ namespace HypiC{
         double kb;
         double un;
         int c2;
+        double w0 = 0.0;
 
         //calculate grid increment (assuming uniformly spaced)
         dz = Inputs.Domain_Length_m / Inputs.nCells;
@@ -89,6 +149,8 @@ namespace HypiC{
         mass = 131.29 * 1.66053907e-27;//for Xe
         kb = 1.380649e-23;
         srand(time(NULL));
+
+        
 
         //#pragma omp parallel for //collapse(2)
         //loop over grid cells
@@ -120,9 +182,15 @@ namespace HypiC{
                 }
                 //Add the particle
                 Neutrals.Add_Particle(z_particle, v, w, c, c2, 0.0);
+                //sum for the first cell
+                if (p==0){
+                    w0 += w;
+                }
             }
         }
 
+        //set the average weight in the first cell
+        Neutrals.set_WBar(w0 / 50);
         //return
         return Neutrals;
     };

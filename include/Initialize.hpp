@@ -25,4 +25,6 @@ namespace HypiC{
     
 
     double Maxwellian_Sampler(double mu, double sigma);
+
+    double Injection_Sampler(double mu, double T);
 }
